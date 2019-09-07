@@ -18,4 +18,10 @@
     <string name="texto_Hide_Real_time_Data">Hide Real-time Data</string>
     <string name="MarkPosition">Mark your Position</string>
 
+
+    <string name="request_permissions_text">
+        This app requires a series of permissions for its proper operation.\n\nPlease touch the button below and allow the app to access each of the resources requested.
+    </string>
+    <string name="request_permissions_button">Request Permissions</string>
+
 </resources>
