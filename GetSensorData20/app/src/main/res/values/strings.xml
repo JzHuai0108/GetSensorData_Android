@@ -24,4 +24,32 @@
     </string>
     <string name="request_permissions_button">Request Permissions</string>
 
+    <string name="no_features">No Features</string>
+    <string name="sensor_type_unknown">Sensor Type Unknown</string>
+    <string name="manufacturer">Manufacturer</string>
+    <string name="version">Version</string>
+    <string name="resolution">Resolution</string>
+    <string name="maximum_range">MaxRange</string>
+    <string name="power_consumption">Power consumption</string>
+    <string name="minimum_delay">MinDelay (0 means is not a streaming sensor)</string>
+
+    <string name="accelerometer_sensor_prefix">ACCE</string>
+    <string name="accelerometer_sensor_not_detected">No Accelerometer detected</string>
+    <string name="gyroscope_sensor_prefix">GYRO</string>
+    <string name="gyroscope_sensor_not_detected">No Gyroscope detected</string>
+    <string name="magnetic_field_sensor_prefix">MAGN</string>
+    <string name="magnetic_field_sensor_not_detected">No Magnetometer detected</string>
+    <string name="pressure_sensor_prefix">PRES</string>
+    <string name="pressure_sensor_not_detected">No Barometer detected</string>
+    <string name="light_sensor_prefix">LIGH</string>
+    <string name="light_sensor_not_detected">No Light Sensor detected</string>
+    <string name="proximity_sensor_prefix">PROX</string>
+    <string name="proximity_sensor_not_detected">No Proximity Sensor detected</string>
+    <string name="relative_humidity_sensor_prefix">HUMI</string>
+    <string name="relative_humidity_sensor_not_detected">No Humidity Sensor detected</string>
+    <string name="ambient_temperature_sensor_prefix">TEMP</string>
+    <string name="ambient_temperature_sensor_not_detected">No Temperature Sensor detected</string>
+    <string name="rotation_vector_sensor_prefix">AHRS</string>
+    <string name="rotation_vector_sensor_not_detected">No Attitude&amp;Heading estimation</string>
+
 </resources>

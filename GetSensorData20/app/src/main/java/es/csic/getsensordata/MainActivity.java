@@ -14,9 +14,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.UUID;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -30,7 +28,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -72,6 +69,17 @@ import com.estimote.sdk.telemetry.EstimoteTelemetry;
 import com.estimote.sdk.eddystone.Eddystone;
 import com.estimote.sdk.eddystone.EddystoneTelemetry;
 import com.estimote.sdk.MacAddress;
+
+import es.csic.getsensordata.data_sensors.AccelerometerDataSensor;
+import es.csic.getsensordata.data_sensors.AmbientTemperatureDataSensor;
+import es.csic.getsensordata.data_sensors.DataSensor;
+import es.csic.getsensordata.data_sensors.GyroscopeDataSensor;
+import es.csic.getsensordata.data_sensors.LightDataSensor;
+import es.csic.getsensordata.data_sensors.MagneticFieldDataSensor;
+import es.csic.getsensordata.data_sensors.PressureDataSensor;
+import es.csic.getsensordata.data_sensors.ProximityDataSensor;
+import es.csic.getsensordata.data_sensors.RelativeHumidityDataSensor;
+import es.csic.getsensordata.data_sensors.RotationVectorDataSensor;
 
 public class MainActivity extends Activity implements SensorEventListener, LocationListener, GpsStatus.Listener {
 	// Flags:
@@ -123,24 +131,15 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 	GpsStatus gpsstatus=null;
 	int num_satellites_in_view=0;
 	int num_satellites_in_use=0;
-	Sensor Sensor_Acc;
-	Sensor Sensor_Gyr;
-	Sensor Sensor_Mag;
-	Sensor Sensor_Pre;
-	Sensor Sensor_Ligh;
-	Sensor Sensor_Prox;
-	Sensor Sensor_Humi;
-	Sensor Sensor_Temp;
-	Sensor Sensor_AHRS;
-	String texto_Acc_Features;
-	String texto_Gyr_Features;
-	String texto_Mag_Features;
-	String texto_Pre_Features;
-	String texto_Ligh_Features;
-	String texto_Prox_Features;
-	String texto_Humi_Features;
-	String texto_Temp_Features;
-	String texto_AHRS_Features;
+	AccelerometerDataSensor accelerometerDataSensor;
+	GyroscopeDataSensor gyroscopeDataSensor;
+	MagneticFieldDataSensor magneticFieldDataSensor;
+	PressureDataSensor pressureDataSensor;
+	LightDataSensor lightDataSensor;
+	ProximityDataSensor proximityDataSensor;
+	RelativeHumidityDataSensor relativeHumidityDataSensor;
+	AmbientTemperatureDataSensor ambientTemperatureDataSensor;
+	RotationVectorDataSensor rotationVectorDataSensor;
 	String texto_GNSS_Features;
 	String texto_Wifi_Features;
 	String texto_Blue_Features;
@@ -350,168 +349,78 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 		// ----------Ver los sensores internos disponibles ------------
 		Log.i("OnCreate", "ver sensores internos disponibles");
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-		Sensor_Acc = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		Sensor_Gyr = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-		Sensor_Mag = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-		Sensor_Pre = mSensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-		Sensor_Ligh = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-		Sensor_Prox = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
-		Sensor_Humi = mSensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
-		Sensor_Temp = mSensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
-		Sensor_AHRS = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+		accelerometerDataSensor = new AccelerometerDataSensor(this);
+		gyroscopeDataSensor = new GyroscopeDataSensor(this);
+		magneticFieldDataSensor = new MagneticFieldDataSensor(this);
+		pressureDataSensor = new PressureDataSensor(this);
+		lightDataSensor = new LightDataSensor(this);
+		proximityDataSensor = new ProximityDataSensor(this);
+		relativeHumidityDataSensor = new RelativeHumidityDataSensor(this);
+		ambientTemperatureDataSensor = new AmbientTemperatureDataSensor(this);
+		rotationVectorDataSensor = new RotationVectorDataSensor(this);
 
 		// Mostrar datos generales del accelerometro:
-		if (Sensor_Acc != null) {
-			obj_txtView1.setText(" ACCE: "+Sensor_Acc.getName());
-			texto_Acc_Features =" Manufacturer: "+Sensor_Acc.getVendor()
-			+",\n Version: "+Sensor_Acc.getVersion()
-			+", Type:"+Sensor_Acc.getType()
-			+", \n Resolution: "+Sensor_Acc.getResolution()+" m/s^2"
-			+", \n MaxRange: "+Sensor_Acc.getMaximumRange()+" m/s^2"
-			+", \n Power consumption: "+Sensor_Acc.getPower()+" mA"
-			+", \n MinDelay (0 means is not a streaming sensor): "+Sensor_Acc.getMinDelay();
-		} else {
-			obj_txtView1.setText(" ACCE: No Accelerometer detected");
-			texto_Acc_Features =" No Features";
-			obj_txtView1.setBackgroundColor(0xFFFF0000);  // red color
+		obj_txtView1.setText(accelerometerDataSensor.getDescription());
+		obj_txtView1a.setText(accelerometerDataSensor.getFeatures());
+		if (accelerometerDataSensor.getSensor() == null) {
+			obj_txtView1.setBackgroundColor(0xFFFF0000);
 		}
-		obj_txtView1a.setText(texto_Acc_Features);
 
 		// Mostrar Datos generales del gyroscope:        
-		if (Sensor_Gyr != null) {
-			obj_txtView2.setText(" GYRO: "+Sensor_Gyr.getName());
-			texto_Gyr_Features =" Manufacturer: "+Sensor_Gyr.getVendor()
-			+",\n Version: "+Sensor_Gyr.getVersion()
-			+", Type: "+Sensor_Gyr.getType()
-			+", \n Resolution: "+Sensor_Gyr.getResolution()+" rad/s"
-			+", \n MaxRange: "+Sensor_Gyr.getMaximumRange()+" rad/s"
-			+", \n Power consumption: "+Sensor_Gyr.getPower()+" mA"
-			+", \n MinDelay (0 means is not a streaming sensor): "+Sensor_Gyr.getMinDelay();
-		} else {
-			obj_txtView2.setText(" GYRO: No Gyroscope detected");
-			texto_Gyr_Features =(String)" No Features";
-			obj_txtView2.setBackgroundColor(0xFFFF0000);  // red color
+		obj_txtView2.setText(gyroscopeDataSensor.getDescription());
+		obj_txtView2a.setText(gyroscopeDataSensor.getFeatures());
+		if (gyroscopeDataSensor.getSensor() == null) {
+			obj_txtView2.setBackgroundColor(0xFFFF0000);
 		}
-		obj_txtView2a.setText(texto_Gyr_Features);
 
 		// Mostrar Datos generales del Magnetometro:        
-		if (Sensor_Mag != null) {
-			obj_txtView3.setText(" MAGN: "+Sensor_Mag.getName());
-			texto_Mag_Features =" Manufacturer: "+Sensor_Mag.getVendor()
-			+",\n Version: "+Sensor_Mag.getVersion()
-			+", Type: "+Sensor_Mag.getType()
-			+", \n Resolution: "+Sensor_Mag.getResolution()+" uT"
-			+", \n MaxRange: "+Sensor_Mag.getMaximumRange()+" uT"
-			+", \n Power consumption: "+Sensor_Mag.getPower()+" mA"
-			+", \n MinDelay (0 means is not a streaming sensor): "+Sensor_Mag.getMinDelay();
-		} else {
-			obj_txtView3.setText(" MAGN: No Magnetometer detected");
-			texto_Mag_Features =(String)" No Features";
-			obj_txtView3.setBackgroundColor(0xFFFF0000);  // red color
+		obj_txtView3.setText(magneticFieldDataSensor.getDescription());
+		obj_txtView3a.setText(magneticFieldDataSensor.getFeatures());
+		if (magneticFieldDataSensor.getSensor() == null) {
+			obj_txtView3.setBackgroundColor(0xFFFF0000);
 		}
-		obj_txtView3a.setText(texto_Mag_Features);
 
 		// Mostrar Datos generales del Barometro:        
-		if (Sensor_Pre != null) {
-			obj_txtView4.setText(" PRES: "+Sensor_Pre.getName());
-			texto_Pre_Features =" Manufacturer: "+Sensor_Pre.getVendor()
-			+",\n Version: "+Sensor_Pre.getVersion()
-			+", Type: "+Sensor_Pre.getType()
-			+", \n Resolution: "+Sensor_Pre.getResolution()+" mbar"
-			+", \n MaxRange: "+Sensor_Pre.getMaximumRange()+" mbar"
-			+", \n Power consumption: "+Sensor_Pre.getPower()+" mA"
-			+", \n MinDelay (0 means is not a streaming sensor): "+Sensor_Pre.getMinDelay();
-		} else {
-			obj_txtView4.setText(" PRES: No Barometer detected");
-			texto_Pre_Features =(String)" No Features";
-			obj_txtView4.setBackgroundColor(0xFFFF0000);  // red color
+		obj_txtView4.setText(pressureDataSensor.getDescription());
+		obj_txtView4a.setText(pressureDataSensor.getFeatures());
+		if (pressureDataSensor.getSensor() == null) {
+			obj_txtView4.setBackgroundColor(0xFFFF0000);
 		}
-		obj_txtView4a.setText(texto_Pre_Features);
 
 		// Mostrar Datos generales del Sensor de Luz:        
-		if (Sensor_Ligh != null) {
-			obj_txtView5.setText(" LIGH: "+Sensor_Ligh.getName());
-			texto_Ligh_Features =" Manufacturer: "+Sensor_Ligh.getVendor()
-			+",\n Version: "+Sensor_Ligh.getVersion()
-			+", Type: "+Sensor_Ligh.getType()
-			+", \n Resolution: "+Sensor_Ligh.getResolution()+" lux"
-			+", \n MaxRange: "+Sensor_Ligh.getMaximumRange()+" lux"
-			+", \n Power consumption: "+Sensor_Ligh.getPower()+" mA"
-			+", \n MinDelay (0 means is not a streaming sensor): "+Sensor_Ligh.getMinDelay();
-		} else {
-			obj_txtView5.setText(" LIGH: No Light Sensor detected");
-			texto_Ligh_Features =(String)" No Features";
-			obj_txtView5.setBackgroundColor(0xFFFF0000);  // red color
+		obj_txtView5.setText(lightDataSensor.getDescription());
+		obj_txtView5a.setText(lightDataSensor.getFeatures());
+		if (lightDataSensor.getSensor() == null) {
+			obj_txtView5.setBackgroundColor(0xFFFF0000);
 		}
-		obj_txtView5a.setText(texto_Ligh_Features);
 
 		// Mostrar Datos generales del Sensor de Prox:        
-		if (Sensor_Prox != null) {
-			obj_txtView6.setText(" PROX: "+Sensor_Prox.getName());
-			texto_Prox_Features =" Manufacturer: "+Sensor_Prox.getVendor()
-			+",\n Version: "+Sensor_Prox.getVersion()
-			+", Type: "+Sensor_Prox.getType()
-			+", \n Resolution: "+Sensor_Prox.getResolution()+" units?"
-			+", \n MaxRange: "+Sensor_Prox.getMaximumRange()+" units?"
-			+", \n Power consumption: "+Sensor_Prox.getPower()+" mA"
-			+", \n MinDelay (0 means is not a streaming sensor): "+Sensor_Prox.getMinDelay();
-		} else {
-			obj_txtView6.setText(" PROX: No Proximity Sensor detected");
-			texto_Prox_Features =(String)" No Features";
-			obj_txtView6.setBackgroundColor(0xFFFF0000);  // red color
+		obj_txtView6.setText(proximityDataSensor.getDescription());
+		obj_txtView6a.setText(proximityDataSensor.getFeatures());
+		if (proximityDataSensor.getSensor() == null) {
+			obj_txtView6.setBackgroundColor(0xFFFF0000);
 		}
-		obj_txtView6a.setText(texto_Prox_Features);
 
 		// Mostrar Datos generales del Sensor de Humidity:        
-		if (Sensor_Humi != null) {
-			obj_txtView7.setText(" HUMI: "+Sensor_Humi.getName());
-			texto_Humi_Features =" Manufacturer: "+Sensor_Humi.getVendor()
-			+",\n Version: "+Sensor_Humi.getVersion()
-			+", Type: "+Sensor_Humi.getType()
-			+", \n Resolution: "+Sensor_Humi.getResolution()+" units?"
-			+", \n MaxRange: "+Sensor_Humi.getMaximumRange()+" units?"
-			+", \n Power consumption: "+Sensor_Humi.getPower()+" mA"
-			+", \n MinDelay (0 means is not a streaming sensor): "+Sensor_Humi.getMinDelay();
-		} else {
-			obj_txtView7.setText(" HUMI: No Humidity Sensor detected");
-			texto_Humi_Features =(String)" No Features";
-			obj_txtView7.setBackgroundColor(0xFFFF0000);  // red color
+		obj_txtView7.setText(relativeHumidityDataSensor.getDescription());
+		obj_txtView7a.setText(relativeHumidityDataSensor.getFeatures());
+		if (relativeHumidityDataSensor.getSensor() == null) {
+			obj_txtView7.setBackgroundColor(0xFFFF0000);
 		}
-		obj_txtView7a.setText(texto_Humi_Features);
 
 		// Mostrar Datos generales del Sensor de Ambient Temperature:        
-		if (Sensor_Temp != null) {
-			obj_txtView8.setText(" TEMP: "+Sensor_Temp.getName());
-			texto_Temp_Features =" Manufacturer: "+Sensor_Temp.getVendor()
-			+",\n Version: "+Sensor_Temp.getVersion()
-			+", Type: "+Sensor_Temp.getType()
-			+", \n Resolution: "+Sensor_Temp.getResolution()+" units?"
-			+", \n MaxRange: "+Sensor_Temp.getMaximumRange()+" units?"
-			+", \n Power consumption: "+Sensor_Temp.getPower()+" mA"
-			+", \n MinDelay (0 means is not a streaming sensor): "+Sensor_Temp.getMinDelay();
-		} else {
-			obj_txtView8.setText(" TEMP: No Temperature Sensor detected");
-			texto_Temp_Features =(String)" No Features";
-			obj_txtView8.setBackgroundColor(0xFFFF0000);  // red color
+		obj_txtView8.setText(ambientTemperatureDataSensor.getDescription());
+		obj_txtView8a.setText(ambientTemperatureDataSensor.getFeatures());
+		if (ambientTemperatureDataSensor.getSensor() == null) {
+			obj_txtView8.setBackgroundColor(0xFFFF0000);
 		}
-		obj_txtView8a.setText(texto_Temp_Features);
 
 		// Mostrar Datos generales de Orientacion:        
-		if (Sensor_AHRS != null) {
-			obj_txtView9.setText(" AHRS: "+Sensor_AHRS.getName());
-			texto_AHRS_Features =" Manufacturer: "+Sensor_AHRS.getVendor()
-			+",\n Version: "+Sensor_AHRS.getVersion()
-			+", Type: "+Sensor_AHRS.getType()
-			+", \n Resolution: "+Sensor_AHRS.getResolution()+" a.u."
-			+", \n MaxRange: "+Sensor_AHRS.getMaximumRange()+" a.u."
-			+", \n Power consumption: "+Sensor_AHRS.getPower()+" mA"
-			+", \n MinDelay (0 means is not a streaming sensor): "+Sensor_AHRS.getMinDelay();
-		} else {
-			obj_txtView9.setText(" AHRS: No Attitude&Heading estimation");
-			texto_AHRS_Features =(String)" No Features";
-			obj_txtView9.setBackgroundColor(0xFFFF0000);  // red color
+		obj_txtView9.setText(rotationVectorDataSensor.getDescription());
+		obj_txtView9a.setText(rotationVectorDataSensor.getFeatures());
+		if (rotationVectorDataSensor.getSensor() == null) {
+			obj_txtView9.setBackgroundColor(0xFFFF0000);
 		}
-		obj_txtView9a.setText(texto_AHRS_Features);
 
 		// ------------Ver los servicios de LOCALIZACION (GNSS/Network)--------------
 		locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -2817,41 +2726,32 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 
 
 		//.....register sensors............
-		if (Sensor_Acc!=null)
-		{
-			mSensorManager.registerListener(this, Sensor_Acc, delay);
+		if (accelerometerDataSensor.getSensor() != null) {
+			accelerometerDataSensor.registerListener(this, delay);
 		}
-		if (Sensor_Gyr!=null)
-		{
-			mSensorManager.registerListener(this, Sensor_Gyr, delay);
+		if (gyroscopeDataSensor.getSensor() != null) {
+			gyroscopeDataSensor.registerListener(this, delay);
 		}
-		if (Sensor_Mag!=null)
-		{
-			mSensorManager.registerListener(this, Sensor_Mag, delay);
+		if (magneticFieldDataSensor.getSensor() != null) {
+			magneticFieldDataSensor.registerListener(this, delay);
 		}
-		if (Sensor_Pre!=null)
-		{
-			mSensorManager.registerListener(this, Sensor_Pre, delay);
+		if (pressureDataSensor.getSensor() != null) {
+			pressureDataSensor.registerListener(this, delay);
 		}
-		if (Sensor_Ligh!=null)
-		{
-			mSensorManager.registerListener(this, Sensor_Ligh, delay);
+		if (lightDataSensor.getSensor() != null) {
+			lightDataSensor.registerListener(this, delay);
 		}
-		if (Sensor_Prox!=null)
-		{
-			mSensorManager.registerListener(this, Sensor_Prox, delay);
+		if (proximityDataSensor.getSensor() != null) {
+			proximityDataSensor.registerListener(this, delay);
 		}
-		if (Sensor_Humi!=null)
-		{
-			mSensorManager.registerListener(this, Sensor_Humi, delay);
+		if (relativeHumidityDataSensor.getSensor() != null) {
+			relativeHumidityDataSensor.registerListener(this, delay);
 		}
-		if (Sensor_Temp!=null)
-		{
-			mSensorManager.registerListener(this, Sensor_Temp, delay);
+		if (ambientTemperatureDataSensor.getSensor() != null) {
+			ambientTemperatureDataSensor.registerListener(this, delay);
 		}
-		if (Sensor_AHRS!=null)
-		{
-			mSensorManager.registerListener(this, Sensor_AHRS, delay);
+		if (rotationVectorDataSensor.getSensor() != null) {
+			rotationVectorDataSensor.registerListener(this, delay);
 		}
 		Log.i("OnResume","mSensorManager registered again");
 
