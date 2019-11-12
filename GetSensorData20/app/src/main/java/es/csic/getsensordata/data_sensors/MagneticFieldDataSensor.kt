@@ -18,13 +18,13 @@ class MagneticFieldDataSensor(private val context: Context): DataSensor(context,
     override fun getSensorFeatures(): String =
         if (sensor != null) {
             """
-                ${context.getString(R.string.manufacturer)}: ${sensor.vendor},
-                ${context.getString(R.string.version)}: ${sensor.version}, Type: ${sensor.type},
-                ${context.getString(R.string.resolution)}: ${sensor.resolution} uT,
-                ${context.getString(R.string.maximum_range)}: ${sensor.maximumRange} uT,
-                ${context.getString(R.string.power_consumption)}: ${sensor.power} mA,
-                ${context.getString(R.string.minimum_delay)}: ${sensor.minDelay}
-            """.trimIndent()
+                | ${context.getString(R.string.manufacturer)}: ${sensor.vendor},
+                | ${context.getString(R.string.version)}: ${sensor.version}, Type: ${sensor.type},
+                | ${context.getString(R.string.resolution)}: ${sensor.resolution} uT,
+                | ${context.getString(R.string.maximum_range)}: ${sensor.maximumRange} uT,
+                | ${context.getString(R.string.power_consumption)}: ${sensor.power} mA,
+                | ${context.getString(R.string.minimum_delay)}: ${sensor.minDelay}
+            """.trimMargin()
         } else {
             context.getString(R.string.no_features)
         }
