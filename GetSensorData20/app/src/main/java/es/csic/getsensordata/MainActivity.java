@@ -52,6 +52,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import kotlin.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -131,15 +132,15 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 	GpsStatus gpsstatus=null;
 	int num_satellites_in_view=0;
 	int num_satellites_in_use=0;
-	AccelerometerDataSensor accelerometerDataSensor;
-	GyroscopeDataSensor gyroscopeDataSensor;
-	MagneticFieldDataSensor magneticFieldDataSensor;
-	PressureDataSensor pressureDataSensor;
-	LightDataSensor lightDataSensor;
-	ProximityDataSensor proximityDataSensor;
-	RelativeHumidityDataSensor relativeHumidityDataSensor;
-	AmbientTemperatureDataSensor ambientTemperatureDataSensor;
-	RotationVectorDataSensor rotationVectorDataSensor;
+	DataSensor accelerometerDataSensor;
+	DataSensor gyroscopeDataSensor;
+	DataSensor magneticFieldDataSensor;
+	DataSensor pressureDataSensor;
+	DataSensor lightDataSensor;
+	DataSensor proximityDataSensor;
+	DataSensor relativeHumidityDataSensor;
+	DataSensor ambientTemperatureDataSensor;
+	DataSensor rotationVectorDataSensor;
 	String texto_GNSS_Features;
 	String texto_Wifi_Features;
 	String texto_Blue_Features;
@@ -349,15 +350,15 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 		// ----------Ver los sensores internos disponibles ------------
 		Log.i("OnCreate", "ver sensores internos disponibles");
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-		accelerometerDataSensor = new AccelerometerDataSensor(this);
-		gyroscopeDataSensor = new GyroscopeDataSensor(this);
-		magneticFieldDataSensor = new MagneticFieldDataSensor(this);
-		pressureDataSensor = new PressureDataSensor(this);
-		lightDataSensor = new LightDataSensor(this);
-		proximityDataSensor = new ProximityDataSensor(this);
-		relativeHumidityDataSensor = new RelativeHumidityDataSensor(this);
-		ambientTemperatureDataSensor = new AmbientTemperatureDataSensor(this);
-		rotationVectorDataSensor = new RotationVectorDataSensor(this);
+		accelerometerDataSensor = new AccelerometerDataSensor(this, deltaT_update);
+		gyroscopeDataSensor = new GyroscopeDataSensor(this, deltaT_update);
+		magneticFieldDataSensor = new MagneticFieldDataSensor(this, deltaT_update);
+		pressureDataSensor = new PressureDataSensor(this, deltaT_update);
+		lightDataSensor = new LightDataSensor(this, deltaT_update);
+		proximityDataSensor = new ProximityDataSensor(this, deltaT_update);
+		relativeHumidityDataSensor = new RelativeHumidityDataSensor(this, deltaT_update);
+		ambientTemperatureDataSensor = new AmbientTemperatureDataSensor(this, deltaT_update);
+		rotationVectorDataSensor = new RotationVectorDataSensor(this, deltaT_update);
 
 		// Mostrar datos generales del accelerometro:
 		obj_txtView1.setText(accelerometerDataSensor.getDescription());
@@ -2148,311 +2149,73 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 	//======================onSensorChanged==================================
 	@Override
 	public final void onSensorChanged(SensorEvent event) {
-		long accuracy = event.accuracy;
+		boolean dataSensorChanged = false;
+		DataSensor dataSensor = null;
+		TextView textView = null;
 
-		// TimeStamp del Sensor (a poner en el log_file)
-		long   SensorTimestamp_ns_raw =  event.timestamp;      // in nano seconds
-		double SensorTimestamp = ((double)(SensorTimestamp_ns_raw))*1E-9;  // de nano_s a segundos
-
-		// Poner TimeStamp de la App (seg�n le llega el dato)
-		long timestamp_ns_raw = System.nanoTime(); // in nano seconds
-		if (timestamp_ns_raw>=tiempo_inicial_ns_raw)   // "tiempo_inicial_ns_raw" inicializado al dar al boton de grabar
-		{
-			timestamp_ns = timestamp_ns_raw - tiempo_inicial_ns_raw;
-		} else {
-			timestamp_ns = (timestamp_ns_raw - tiempo_inicial_ns_raw) + Long.MAX_VALUE;
+		switch(event.sensor.getType()) {
+			case Sensor.TYPE_ACCELEROMETER:
+				dataSensorChanged = true;
+				dataSensor = accelerometerDataSensor;
+				textView = obj_txtView1b;
+				break;
+			case Sensor.TYPE_GYROSCOPE:
+				dataSensorChanged = true;
+				dataSensor = gyroscopeDataSensor;
+				textView = obj_txtView2b;
+				break;
+			case Sensor.TYPE_MAGNETIC_FIELD:
+				dataSensorChanged = true;
+				dataSensor = magneticFieldDataSensor;
+				textView = obj_txtView3b;
+				break;
+			case Sensor.TYPE_PRESSURE:
+				dataSensorChanged = true;
+				dataSensor = pressureDataSensor;
+				textView = obj_txtView4b;
+				break;
+			case Sensor.TYPE_LIGHT:
+				dataSensorChanged = true;
+				dataSensor = lightDataSensor;
+				textView = obj_txtView5b;
+				break;
+			case Sensor.TYPE_PROXIMITY:
+				dataSensorChanged = true;
+				dataSensor = proximityDataSensor;
+				textView = obj_txtView6b;
+				break;
+			case Sensor.TYPE_RELATIVE_HUMIDITY:
+				dataSensorChanged = true;
+				dataSensor = relativeHumidityDataSensor;
+				textView = obj_txtView7b;
+				break;
+			case Sensor.TYPE_AMBIENT_TEMPERATURE:
+				dataSensorChanged = true;
+				dataSensor = ambientTemperatureDataSensor;
+				textView = obj_txtView8b;
+				break;
+			case Sensor.TYPE_ROTATION_VECTOR:
+				dataSensorChanged = true;
+				dataSensor = rotationVectorDataSensor;
+				textView = obj_txtView9b;
+				break;
 		}
-		timestamp = ((double)(timestamp_ns))*1E-9;  // de nano_s a segundos
-
-		//Log.i("","timestamp (ns): "+timestamp_ns);
-		//Log.i("","timestamp (s): "+timestamp);
-
-		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-			contador_Acce++;
-			//double resto=Math.IEEEremainder(contador_Acce, 10);
-			if (SensorTimestamp - timestamp_Acce_last > 0) {
-				freq_medida_Acce = (float) (0.9 * freq_medida_Acce + 0.1 / (SensorTimestamp - timestamp_Acce_last));
-			} else {
-				Log.e("ACCE SENSOR","timestamp<timestamp_Acce_last");
-			}
-			timestamp_Acce_last=SensorTimestamp;
-
-			// Many sensors return 3 values, one for each axis.
-			float[] Acc_data = event.values;
-
-			// Do something with this sensor value.
-			if (timestamp-timestamp_Acce_last_update>deltaT_update) // cada 0.5 segundos actualizo la pantalla
-			{
-				String cadena_display=String.format(Locale.US,"\tAcc(X): \t%10.5f \tm/s^2\n\tAcc(Y): \t%10.5f \tm/s^2\n\tAcc(Z): \t%10.5f \tm/s^2\n\t\t\t\t\t\t\t\tFreq: %5.0f Hz",Acc_data[0],Acc_data[1],Acc_data[2],freq_medida_Acce);
-				obj_txtView1b.setText(cadena_display);
-				timestamp_Acce_last_update=timestamp;
-			}
-
-			if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
-			{
-				try {
-					String cadena_file=String.format(Locale.US,"\nACCE;%.3f;%.3f;%.5f;%.5f;%.5f;%d",timestamp,SensorTimestamp,Acc_data[0],Acc_data[1],Acc_data[2],accuracy);
-					fout.write(cadena_file);
-				} catch (IOException e) {// TODO Auto-generated catch block
-					e.printStackTrace();
+		if (dataSensorChanged) {
+			Pair<String, String> sensorStatus = dataSensor.getSensorStatus(event, tiempo_inicial_ns_raw);
+			if (sensorStatus != null) {
+				String statusForScreen = sensorStatus.component1();
+				textView.setText(statusForScreen);
+				if (obj_ToggleButtonSave.isChecked()) {
+					String statusForLog = sensorStatus.component2();
+					try {
+						fout.write(statusForLog);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
 				}
 			}
-
-		} // end-if
-
-		if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-			contador_Gyro++;
-
-			// Many sensors return 3 values, one for each axis.
-			float[] Gyr_data = event.values;
-
-			// Do something with this sensor value.
-			if (SensorTimestamp - timestamp_Gyro_last > 0) {
-				freq_medida_Gyro = (float) (0.99 * freq_medida_Gyro + 0.01 / (SensorTimestamp - timestamp_Gyro_last));
-			}
-			timestamp_Gyro_last=SensorTimestamp;
-
-			if (timestamp-timestamp_Gyro_last_update>deltaT_update) // cada 0.5 segundos actualizo la pantalla
-			{
-				String cadena_display=String.format(Locale.US,"\tGyr(X): \t%10.5f \trad/s\n\tGyr(Y): \t%10.5f \trad/s\n\tGyr(Z): \t%10.5f \trad/s\n\t\t\t\t\t\t\t\tFreq: %5.0f Hz",Gyr_data[0],Gyr_data[1],Gyr_data[2],freq_medida_Gyro);
-				obj_txtView2b.setText(cadena_display);
-				timestamp_Gyro_last_update=timestamp;
-			}
-
-			if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
-			{
-				try {
-					String cadena_file=String.format(Locale.US,"\nGYRO;%.3f;%.3f;%.5f;%.5f;%.5f;%d",timestamp,SensorTimestamp,Gyr_data[0],Gyr_data[1],Gyr_data[2],accuracy);
-					fout.write(cadena_file);
-				} catch (IOException e) {// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		} // end-if
-
-		if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-			contador_Magn++;
-			if (SensorTimestamp - timestamp_Magn_last > 0) {
-				freq_medida_Magn = (float) (0.9 * freq_medida_Magn + 0.1 / (SensorTimestamp - timestamp_Magn_last));
-			}
-			timestamp_Magn_last=SensorTimestamp;
-			// Many sensors return 3 values, one for each axis.
-			float[] Mag_data = event.values;
-			// Do something with this sensor value.
-			if (timestamp-timestamp_Magn_last_update>deltaT_update) // cada 0.5 segundos actualizo la pantalla
-			{
-				String cadena_display=String.format(Locale.US,"\tMag(X): \t%10.5f \tuT\n\tMag(Y): \t%10.5f \tuT\n\tMag(Z): \t%10.5f \tuT\n\t\t\t\t\t\t\t\tFreq: %5.0f Hz",Mag_data[0],Mag_data[1],Mag_data[2],freq_medida_Magn);
-				obj_txtView3b.setText(cadena_display);
-				timestamp_Magn_last_update=timestamp;
-			}
-			if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
-			{
-				try {
-					String cadena_file=String.format(Locale.US,"\nMAGN;%.3f;%.3f;%.5f;%.5f;%.5f;%d",timestamp,SensorTimestamp,Mag_data[0],Mag_data[1],Mag_data[2],accuracy);
-					fout.write(cadena_file);
-				} catch (IOException e) {// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		} // end-if
-
-		if (event.sensor.getType() == Sensor.TYPE_PRESSURE) {
-			contador_Pres++;
-			freq_medida_Pres=(float) (0.9*freq_medida_Pres	+ 0.1/(SensorTimestamp-timestamp_Pres_last));
-			timestamp_Pres_last=SensorTimestamp;
-			// Many sensors return 3 values, one for each axis.
-			float[] Pre_data = event.values;
-			// Do something with this sensor value.
-			if (timestamp-timestamp_Pres_last_update>deltaT_update) // cada 0.5 segundos actualizo la pantalla
-			{
-				String cadena_display=String.format(Locale.US,"\tPresssure: \t%8.2f \tmbar\n\t\t\t\t\t\t\t\tFreq: %5.0f Hz",Pre_data[0],freq_medida_Pres);
-				obj_txtView4b.setText(cadena_display);
-				timestamp_Pres_last_update=timestamp;
-			}
-			if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
-			{
-				try {
-					String cadena_file=String.format(Locale.US,"\nPRES;%.3f;%.3f;%.4f;%d",timestamp,SensorTimestamp,Pre_data[0],accuracy);
-					fout.write(cadena_file);
-				} catch (IOException e) {// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		} // end-if
-
-		if (event.sensor.getType() == Sensor.TYPE_LIGHT) {
-			contador_Ligh++;
-			freq_medida_Ligh=(float) (0.9*freq_medida_Ligh	+ 0.1/(SensorTimestamp-timestamp_Ligh_last));
-			timestamp_Ligh_last=SensorTimestamp;
-			// Many sensors return 3 values, one for each axis.
-			float[] Ligh_data = event.values;
-			// Do something with this sensor value.
-			if (timestamp-timestamp_Ligh_last_update>deltaT_update) // cada 0.5 segundos actualizo la pantalla
-			{
-				String cadena_display=String.format(Locale.US,"\tLight Intensity: \t%8.1f \tLux\n\t\t\t\t\t\t\t\tFreq: %5.0f Hz",Ligh_data[0],freq_medida_Ligh);
-				obj_txtView5b.setText(cadena_display);
-				timestamp_Ligh_last_update=timestamp;
-			}
-			if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
-			{
-				try {
-					String cadena_file=String.format(Locale.US,"\nLIGH;%.3f;%.3f;%.1f;%d",timestamp,SensorTimestamp,Ligh_data[0],accuracy);
-					fout.write(cadena_file);
-				} catch (IOException e) {// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		} // end-if
-
-		if (event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
-			contador_Prox++;
-			freq_medida_Prox=(float) (0.9*freq_medida_Prox	+ 0.1/(SensorTimestamp-timestamp_Prox_last));
-			timestamp_Prox_last=SensorTimestamp;
-			// Many sensors return 3 values, one for each axis.
-			float[] Prox_data = event.values;
-			// Do something with this sensor value.
-			if (timestamp-timestamp_Prox_last_update>deltaT_update) // cada 0.5 segundos actualizo la pantalla
-			{
-				String cadena_display=String.format(Locale.US,"\tProximity: \t%8.1f \tUnits\n\t\t\t\t\t\t\t\tFreq: %5.0f Hz",Prox_data[0],freq_medida_Prox);
-				obj_txtView6b.setText(cadena_display);
-				timestamp_Prox_last_update=timestamp;
-			}
-			if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
-			{
-				try {
-					String cadena_file=String.format(Locale.US,"\nPROX;%.3f;%.3f;%.1f;%d",timestamp,SensorTimestamp,Prox_data[0],accuracy);
-					fout.write(cadena_file);
-				} catch (IOException e) {// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		} // end-if
-
-		if (event.sensor.getType() == Sensor.TYPE_RELATIVE_HUMIDITY) {
-			contador_Humi++;
-			freq_medida_Humi=(float) (0.9*freq_medida_Humi	+ 0.1/(SensorTimestamp-timestamp_Humi_last));
-			timestamp_Humi_last=SensorTimestamp;
-			// Many sensors return 3 values, one for each axis.
-			float[] Humi_data = event.values;
-			// Do something with this sensor value.
-			if (timestamp-timestamp_Humi_last_update>deltaT_update) // cada 0.5 segundos actualizo la pantalla
-			{
-				String cadena_display=String.format(Locale.US,"\tRelative Humidity: \t%8.1f \t%%\n\t\t\t\t\t\t\t\tFreq: %5.0f Hz",Humi_data[0],freq_medida_Humi);  // para poner "%" en string => poner %%
-				obj_txtView7b.setText(cadena_display);
-				timestamp_Humi_last_update=timestamp;
-			}
-			if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
-			{
-				try {
-					String cadena_file=String.format(Locale.US,"\nHUMI;%.3f;%.3f;%.1f;%d",timestamp,SensorTimestamp,Humi_data[0],accuracy);
-					fout.write(cadena_file);
-				} catch (IOException e) {// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		} // end-if
-
-		if (event.sensor.getType() == Sensor.TYPE_AMBIENT_TEMPERATURE) {
-			contador_Temp++;
-			freq_medida_Temp=(float) (0.9*freq_medida_Temp	+ 0.1/(SensorTimestamp-timestamp_Temp_last));
-			timestamp_Temp_last=SensorTimestamp;
-			// Many sensors return 3 values, one for each axis.
-			float[] Temp_data = event.values;
-			// Do something with this sensor value.
-			if (timestamp-timestamp_Temp_last_update>deltaT_update) // cada 0.5 segundos actualizo la pantalla
-			{
-				String cadena_display=String.format(Locale.US,"\tAmbient Temperature: \t%8.1f \t�C\n\t\t\t\t\t\t\t\tFreq: %5.0f Hz",Temp_data[0],freq_medida_Temp);
-				obj_txtView8b.setText(cadena_display);
-				timestamp_Temp_last_update=timestamp;
-			}
-			if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
-			{
-				try {
-					String cadena_file=String.format(Locale.US,"\nTEMP;%.3f;%.3f;%.1f;%d",timestamp,SensorTimestamp,Temp_data[0],accuracy);
-					fout.write(cadena_file);
-				} catch (IOException e) {// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		} // end-if
-
-		if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
-			contador_Ahrs++;
-			freq_medida_Ahrs=(float) (0.9*freq_medida_Ahrs	+ 0.1/(SensorTimestamp-timestamp_Ahrs_last));
-			timestamp_Ahrs_last=SensorTimestamp;
-			// Many sensors return 3 values, one for each axis.
-			float[] AHRS_data = event.values;
-			/*values[0]: x*sin(θ/2)
-			values[1]: y*sin(θ/2)
-			values[2]: z*sin(θ/2)
-			values[3]: cos(θ/2)
-			values[4]: estimated heading Accuracy (in radians) (-1 if unavailable)
-			values[3], originally optional, will always be present from SDK Level 18 onwards. values[4] is a new value that has been added in SDK Level 18. */
-
-			// Cambiar formato de "Rotation vector" a "Azimuth,Pitch,Roll"
-			float[] Rot_b_g={1, 0, 0, 0, 1, 0, 0, 0, 1};
-
-			//............................
-			// Aplico remedio para evitar el error:
-			//     "java.lang.IllegalArgumentException: R array length must be 3 or 4"
-			//     "at android.hardware.SensorManager.getRotationMatrixFromVector(SensorManager.java:1336)"
-			// leido en: https://groups.google.com/forum/#!topic/android-developers/U3N9eL5BcJk
-
-			// En vez de esto:
-			//      SensorManager.getRotationMatrixFromVector(Rot_b_g, AHRS_data);  // Obtengo "Matriz rotacion" (en ENU)
-			//pongo esto:
-			try {
-				SensorManager.getRotationMatrixFromVector(Rot_b_g, AHRS_data);
-			} catch (IllegalArgumentException e) {
-				if (AHRS_data.length > 3) {
-					// Note 3 bug
-					float[] newVector = new float[] {
-							AHRS_data[0],
-							AHRS_data[1],
-							AHRS_data[2]
-					};
-					SensorManager.getRotationMatrixFromVector(Rot_b_g, newVector);
-				}
-			}
-			//............................
-
-			float[] orientacion={0,0,0};  // AzimutZ[0], PitchX[1] and RollY[2]
-			orientacion=SensorManager.getOrientation(Rot_b_g, orientacion);  // En radianes pero lo da en WND (West/North/Down)
-			orientacion[0] = -orientacion[0];
-			orientacion[1] = -orientacion[1]; // Paso de WND a de nuevo ENU (que es donde quiero trabajar)
-			double PI=3.14159265358979323846;
-			float yaw_Z=(float) (orientacion[0]*180/PI);  // Yaw, ejeZ en grados
-			float pitch_X=(float) (orientacion[1]*180/PI);  // Pitch, eje X
-			float roll_Y=(float) (orientacion[2]*180/PI);  // Roll, eje Y
-
-			//DecimalFormat
-			if (timestamp-timestamp_Ahrs_last_update>deltaT_update) // cada 0.5 segundos actualizo la pantalla
-			{
-				String cadena_display=String.format(Locale.US,"\tPitch(X): \t%10.3f \t\tdegrees\n\tRoll(Y): \t%10.3f \t\tdegrees\n\tYaw(Z): \t%10.3f \tdegrees\n\t\t\t\t\t\t\t\tFreq: %5.0f Hz",pitch_X,roll_Y,yaw_Z,freq_medida_Ahrs);
-				obj_txtView9b.setText(cadena_display);
-				timestamp_Ahrs_last_update=timestamp;
-			}
-
-			// Do something with this sensor value.
-
-			if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
-			{
-				try {
-					//String cadena_file=String.format(Locale.US,"\nAHRS;%.3f;%.3f;%.4f;%.4f;%.4f;%.6f;%.6f;%.6f;%.6f;%d;%.9f;%.9f;%.9f;%.9f;%.9f;%.9f;%.9f;%.9f;%.9f",
-					//		timestamp,SensorTimestamp,pitch_X,roll_Y,yaw_Z,AHRS_data[0],AHRS_data[1],AHRS_data[2],AHRS_data[3],accuracy,Rot_b_g[0],Rot_b_g[1],Rot_b_g[2],Rot_b_g[3],Rot_b_g[4],Rot_b_g[5],Rot_b_g[6],Rot_b_g[7],Rot_b_g[8]);
-
-					String cadena_file=String.format(Locale.US,"\nAHRS;%.3f;%.3f;%.6f;%.6f;%.6f;%.8f;%.8f;%.8f;%d",
-							timestamp,SensorTimestamp,pitch_X,roll_Y,yaw_Z,AHRS_data[0],AHRS_data[1],AHRS_data[2],accuracy);
-					fout.write(cadena_file);
-				} catch (IOException e) {// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		} // end-if
-
-
+		}
 	}
-
 
 	//======================onLocationChanged==================================
 	// Called when location has changed
@@ -2975,7 +2738,4 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 		{	Debug.stopMethodTracing();	}
 		Log.i("OnDestroy","END: OnDestroy");
 	}
-
-
-
 }  // end - MainActivity

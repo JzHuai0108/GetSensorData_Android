@@ -2,9 +2,13 @@ package es.csic.getsensordata.data_sensors
 
 import android.content.Context
 import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.util.Log
 import es.csic.getsensordata.R
+import java.io.IOException
+import java.util.*
 
-class AccelerometerDataSensor(private val context: Context): DataSensor(context, Sensor.TYPE_ACCELEROMETER) {
+class AccelerometerDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_ACCELEROMETER, updateInterval) {
     override fun getSensorPrefix(): String =
         context.getString(R.string.accelerometer_sensor_prefix)
 
@@ -28,4 +32,46 @@ class AccelerometerDataSensor(private val context: Context): DataSensor(context,
         } else {
             context.getString(R.string.no_features)
         }
+
+    override fun getSensorStatus(event: SensorEvent, epoch: Long): Pair<String, String>? {
+        counter += 1
+
+        val sensorTimestamp = getSensorTimestamp(event)
+        val timestamp = getTimestamp(epoch)
+
+        if (sensorTimestamp - previousSensorTimestamp > 0) {
+            measurementFrequency = (0.9 * measurementFrequency + 0.1 / (sensorTimestamp - previousSensorTimestamp)).toFloat()
+        } else {
+            Log.e("${context.getString(R.string.accelerometer_sensor_prefix)} SENSOR", "timestamp < previousTimestamp")
+        }
+        previousSensorTimestamp = sensorTimestamp
+
+        if (timestamp - previousUpdateTimestamp > updateInterval) {
+            val templateForScreen = """
+                |   Acc(X): %10.5f  m/s^2
+                |   Acc(Y): %10.5f  m/s^2
+                |   Acc(Z): %10.5f  m/s^2
+                |                               Freq: %5.0f Hz
+            """.trimMargin()
+            val statusForScreen = String.format(Locale.US, templateForScreen,
+                event.values[0],
+                event.values[1],
+                event.values[2],
+                measurementFrequency
+            )
+            val templateForLog = "\n${context.getString(R.string.accelerometer_sensor_prefix)};%.3f;%.3f;%.5f;%.5f;%.5f;%d"
+            val statusForLog = String.format(Locale.US, templateForLog,
+                timestamp,
+                sensorTimestamp,
+                event.values[0],
+                event.values[1],
+                event.values[2],
+                event.accuracy
+            )
+            previousUpdateTimestamp = timestamp
+            return Pair(statusForScreen, statusForLog)
+        } else {
+            return null
+        }
+    }
 }
