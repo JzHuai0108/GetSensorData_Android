@@ -74,7 +74,7 @@ class RotationVectorDataSensor(private val context: Context, private val updateI
                     yaw,
                     measurementFrequency
             )
-            val templateForLog = "\n${context.getString(R.string.rotation_vector_sensor_prefix)};%.3f;%.3f;%.6f;%.6f;%.6f;%.8f;%.8f;%.8f;%d"
+            val templateForLog = "\n${getSensorPrefix()};%.3f;%.3f;%.6f;%.6f;%.6f;%.8f;%.8f;%.8f;%d"
             val statusForLog = String.format(Locale.US, templateForLog,
                     timestamp,
                     sensorTimestamp,

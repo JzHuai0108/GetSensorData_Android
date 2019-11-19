@@ -41,7 +41,7 @@ class AmbientTemperatureDataSensor(private val context: Context, private val upd
         if (sensorTimestamp - previousSensorTimestamp > 0) {
             measurementFrequency = (0.9 * measurementFrequency + 0.1 / (sensorTimestamp - previousSensorTimestamp)).toFloat()
         } else {
-            Log.e("${context.getString(R.string.accelerometer_sensor_prefix)} SENSOR", "timestamp < previousTimestamp")
+            Log.e("${getSensorPrefix()} SENSOR", "timestamp < previousTimestamp")
         }
         previousSensorTimestamp = sensorTimestamp
 
@@ -54,7 +54,7 @@ class AmbientTemperatureDataSensor(private val context: Context, private val upd
                     event.values[0],
                     measurementFrequency
             )
-            val templateForLog = "\n${context.getString(R.string.ambient_temperature_sensor_prefix)};%.3f;%.3f;%.1f;%d"
+            val templateForLog = "\n${getSensorPrefix()};%.3f;%.3f;%.1f;%d"
             val statusForLog = String.format(Locale.US, templateForLog,
                     timestamp,
                     sensorTimestamp,
