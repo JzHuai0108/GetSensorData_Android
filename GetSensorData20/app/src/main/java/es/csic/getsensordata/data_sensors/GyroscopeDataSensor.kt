@@ -8,8 +8,7 @@ import es.csic.getsensordata.R
 import java.util.*
 
 class GyroscopeDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_GYROSCOPE, updateInterval) {
-    override fun getSensorPrefix(): String =
-        context.getString(R.string.gyroscope_sensor_prefix)
+    override fun getSensorPrefix(): String = "GYRO"
 
     override fun getSensorName(): String =
         if (sensor != null) {

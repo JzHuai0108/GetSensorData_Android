@@ -8,8 +8,7 @@ import es.csic.getsensordata.R
 import java.util.*
 
 class RelativeHumidityDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_RELATIVE_HUMIDITY, updateInterval) {
-    override fun getSensorPrefix(): String =
-        context.getString(R.string.relative_humidity_sensor_prefix)
+    override fun getSensorPrefix(): String = "HUMI"
 
     override fun getSensorName(): String =
         if (sensor != null) {

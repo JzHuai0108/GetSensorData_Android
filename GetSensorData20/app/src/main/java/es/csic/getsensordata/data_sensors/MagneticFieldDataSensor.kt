@@ -8,8 +8,7 @@ import es.csic.getsensordata.R
 import java.util.*
 
 class MagneticFieldDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_MAGNETIC_FIELD, updateInterval) {
-    override fun getSensorPrefix(): String =
-        context.getString(R.string.magnetic_field_sensor_prefix)
+    override fun getSensorPrefix(): String = "MAGN"
 
     override fun getSensorName(): String =
         if (sensor != null) {

@@ -8,8 +8,7 @@ import es.csic.getsensordata.R
 import java.util.*
 
 class LightDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_LIGHT, updateInterval) {
-    override fun getSensorPrefix(): String =
-        context.getString(R.string.light_sensor_prefix)
+    override fun getSensorPrefix(): String = "LIGH"
 
     override fun getSensorName(): String =
         if (sensor != null) {

@@ -9,8 +9,7 @@ import java.io.IOException
 import java.util.*
 
 class AccelerometerDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_ACCELEROMETER, updateInterval) {
-    override fun getSensorPrefix(): String =
-        context.getString(R.string.accelerometer_sensor_prefix)
+    override fun getSensorPrefix(): String = "ACCE"
 
     override fun getSensorName(): String =
         if (sensor != null) {

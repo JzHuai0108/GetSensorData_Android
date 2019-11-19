@@ -8,8 +8,7 @@ import es.csic.getsensordata.R
 import java.util.*
 
 class PressureDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_PRESSURE, updateInterval) {
-    override fun getSensorPrefix(): String =
-        context.getString(R.string.pressure_sensor_prefix)
+    override fun getSensorPrefix(): String = "PRES"
 
     override fun getSensorName(): String =
         if (sensor != null) {

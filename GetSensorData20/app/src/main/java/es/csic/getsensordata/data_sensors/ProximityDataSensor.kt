@@ -8,8 +8,7 @@ import es.csic.getsensordata.R
 import java.util.*
 
 class ProximityDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_PROXIMITY, updateInterval) {
-    override fun getSensorPrefix(): String =
-        context.getString(R.string.proximity_sensor_prefix)
+    override fun getSensorPrefix(): String = "PROX"
 
     override fun getSensorName(): String =
         if (sensor != null) {

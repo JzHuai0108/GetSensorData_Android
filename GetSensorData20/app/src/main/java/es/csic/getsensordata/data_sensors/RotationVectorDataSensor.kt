@@ -10,8 +10,7 @@ import java.util.*
 import kotlin.math.PI
 
 class RotationVectorDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_ROTATION_VECTOR, updateInterval) {
-    override fun getSensorPrefix(): String =
-        context.getString(R.string.rotation_vector_sensor_prefix)
+    override fun getSensorPrefix(): String = "AHRS"
 
     override fun getSensorName(): String =
         if (sensor != null) {

@@ -8,8 +8,7 @@ import es.csic.getsensordata.R
 import java.util.*
 
 class AmbientTemperatureDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_AMBIENT_TEMPERATURE, updateInterval) {
-    override fun getSensorPrefix(): String =
-        context.getString(R.string.ambient_temperature_sensor_prefix)
+    override fun getSensorPrefix(): String = "TEMP"
 
     override fun getSensorName(): String =
         if (sensor != null) {
