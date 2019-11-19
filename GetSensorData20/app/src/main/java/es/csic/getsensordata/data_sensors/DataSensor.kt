@@ -8,7 +8,7 @@ import android.hardware.SensorManager
 import es.csic.getsensordata.R
 
 abstract class DataSensor(private val context: Context, private val sensorType: Int, private val updateInterval: Double) {
-    protected val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager?
+    private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager?
     val sensor: Sensor?
     var counter: Long = 0
     var previousSensorTimestamp: Double = 0.0
