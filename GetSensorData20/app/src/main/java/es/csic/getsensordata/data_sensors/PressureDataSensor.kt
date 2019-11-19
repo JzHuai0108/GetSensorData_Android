@@ -31,11 +31,11 @@ class PressureDataSensor(private val context: Context, private val updateInterva
             context.getString(R.string.no_features)
         }
 
-    override fun getSensorStatus(event: SensorEvent, epoch: Long): Pair<String, String>? {
+    override fun getSensorStatus(event: SensorEvent): Pair<String, String>? {
         counter += 1
 
         val sensorTimestamp = getSensorTimestamp(event)
-        val timestamp = getTimestamp(epoch)
+        val timestamp = getTimestamp()
 
         if (sensorTimestamp - previousSensorTimestamp > 0) {
             measurementFrequency = (0.9 * measurementFrequency + 0.1 / (sensorTimestamp - previousSensorTimestamp)).toFloat()

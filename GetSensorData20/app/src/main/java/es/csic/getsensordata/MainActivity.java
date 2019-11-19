@@ -1084,6 +1084,16 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 						timestamp_Imul_last_update=0;
 						timestamp_Imux_last_update=0;
 						timestamp_MIMU22BT_last_update=0;
+
+						accelerometerDataSensor.setEpoch(tiempo_inicial_ns_raw);
+						gyroscopeDataSensor.setEpoch(tiempo_inicial_ns_raw);
+						magneticFieldDataSensor.setEpoch(tiempo_inicial_ns_raw);
+						pressureDataSensor.setEpoch(tiempo_inicial_ns_raw);
+						lightDataSensor.setEpoch(tiempo_inicial_ns_raw);
+						proximityDataSensor.setEpoch(tiempo_inicial_ns_raw);
+						relativeHumidityDataSensor.setEpoch(tiempo_inicial_ns_raw);
+						ambientTemperatureDataSensor.setEpoch(tiempo_inicial_ns_raw);
+						rotationVectorDataSensor.setEpoch(tiempo_inicial_ns_raw);
 					}
 
 					SimpleDateFormat sf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss",Locale.US);  // formato de la fecha
@@ -2201,7 +2211,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 				break;
 		}
 		if (dataSensorChanged) {
-			Pair<String, String> sensorStatus = dataSensor.getSensorStatus(event, tiempo_inicial_ns_raw);
+			Pair<String, String> sensorStatus = dataSensor.getSensorStatus(event);
 			if (sensorStatus != null) {
 				String statusForScreen = sensorStatus.component1();
 				textView.setText(statusForScreen);

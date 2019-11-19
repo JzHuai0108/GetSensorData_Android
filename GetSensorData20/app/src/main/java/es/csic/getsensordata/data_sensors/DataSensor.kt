@@ -11,6 +11,12 @@ abstract class DataSensor(private val context: Context, private val sensorType: 
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager?
     val sensor: Sensor?
     var counter: Long = 0
+    var epoch: Long = 0
+        set(value) {
+            field = value
+            previousSensorTimestamp = 0.0
+            previousUpdateTimestamp = 0.0
+        }
     var previousSensorTimestamp: Double = 0.0
     var previousUpdateTimestamp: Double = 0.0
     var measurementFrequency: Float = 0.0f
@@ -40,12 +46,12 @@ abstract class DataSensor(private val context: Context, private val sensorType: 
         sensorManager?.registerListener(listener, sensor, samplingPeriodUs)
     }
 
-    abstract fun getSensorStatus(event: SensorEvent, epoch: Long): Pair<String, String>?
+    abstract fun getSensorStatus(event: SensorEvent): Pair<String, String>?
 
     fun getSensorTimestamp(event: SensorEvent): Double =
         event.timestamp.toDouble() * 1e-9
 
-    fun getTimestamp(epoch: Long): Double {
+    fun getTimestamp(): Double {
         val systemNanoTime = System.nanoTime()
         val timestampInNanoseconds: Long
         timestampInNanoseconds = if (systemNanoTime >= epoch) {
