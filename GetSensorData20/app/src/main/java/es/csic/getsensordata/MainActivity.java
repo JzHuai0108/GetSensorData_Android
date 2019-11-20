@@ -2211,7 +2211,7 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 				break;
 		}
 		if (dataSensorChanged) {
-			Pair<String, String> sensorStatus = dataSensor.getSensorStatus(event);
+			Pair<String, String> sensorStatus = dataSensor.getStatus(event);
 			if (sensorStatus != null) {
 				String statusForScreen = sensorStatus.component1();
 				textView.setText(statusForScreen);

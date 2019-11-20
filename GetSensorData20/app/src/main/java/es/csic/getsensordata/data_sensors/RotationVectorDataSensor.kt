@@ -33,7 +33,7 @@ class RotationVectorDataSensor(private val context: Context, private val updateI
             context.getString(R.string.no_features)
         }
 
-    override fun getSensorStatus(event: SensorEvent): Pair<String, String>? {
+    override fun getStatus(event: SensorEvent): Pair<String, String>? {
         counter += 1
 
         val eventTimestamp = getTimestamp(event)

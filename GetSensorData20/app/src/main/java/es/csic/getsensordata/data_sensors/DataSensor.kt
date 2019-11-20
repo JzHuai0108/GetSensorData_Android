@@ -46,7 +46,7 @@ abstract class DataSensor(private val context: Context, private val sensorType: 
         sensorManager?.registerListener(listener, sensor, samplingPeriodUs)
     }
 
-    abstract fun getSensorStatus(event: SensorEvent): Pair<String, String>?
+    abstract fun getStatus(event: SensorEvent): Pair<String, String>?
 
     fun getTimestamp(event: SensorEvent): Double =
         event.timestamp.toDouble() * 1e-9
