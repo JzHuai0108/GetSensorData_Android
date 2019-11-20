@@ -34,15 +34,15 @@ class AmbientTemperatureDataSensor(private val context: Context, private val upd
     override fun getSensorStatus(event: SensorEvent): Pair<String, String>? {
         counter += 1
 
-        val sensorTimestamp = getSensorTimestamp(event)
+        val eventTimestamp = getTimestamp(event)
         val timestamp = getTimestamp()
 
-        if (sensorTimestamp - previousSensorTimestamp > 0) {
-            measurementFrequency = (0.9 * measurementFrequency + 0.1 / (sensorTimestamp - previousSensorTimestamp)).toFloat()
+        if (eventTimestamp - previousSensorTimestamp > 0) {
+            measurementFrequency = (0.9 * measurementFrequency + 0.1 / (eventTimestamp - previousSensorTimestamp)).toFloat()
         } else {
             Log.e("${getSensorPrefix()} SENSOR", "timestamp < previousTimestamp")
         }
-        previousSensorTimestamp = sensorTimestamp
+        previousSensorTimestamp = eventTimestamp
 
         if (timestamp - previousUpdateTimestamp > updateInterval) {
             val templateForScreen = """
@@ -56,7 +56,7 @@ class AmbientTemperatureDataSensor(private val context: Context, private val upd
             val templateForLog = "\n${getSensorPrefix()};%.3f;%.3f;%.1f;%d"
             val statusForLog = String.format(Locale.US, templateForLog,
                     timestamp,
-                    sensorTimestamp,
+                    eventTimestamp,
                     event.values[0],
                     event.accuracy
             )

@@ -36,11 +36,11 @@ class RotationVectorDataSensor(private val context: Context, private val updateI
     override fun getSensorStatus(event: SensorEvent): Pair<String, String>? {
         counter += 1
 
-        val sensorTimestamp = getSensorTimestamp(event)
+        val eventTimestamp = getTimestamp(event)
         val timestamp = getTimestamp()
 
-        measurementFrequency = (0.9 * measurementFrequency + 0.1 / (sensorTimestamp - previousSensorTimestamp)).toFloat()
-        previousSensorTimestamp = sensorTimestamp
+        measurementFrequency = (0.9 * measurementFrequency + 0.1 / (eventTimestamp - previousSensorTimestamp)).toFloat()
+        previousSensorTimestamp = eventTimestamp
 
         val eventValues = event.values
         val rotationMatrix = floatArrayOf(1f, 0f, 0f, 0f, 1f, 0f, 0f, 0f, 1f)
@@ -76,7 +76,7 @@ class RotationVectorDataSensor(private val context: Context, private val updateI
             val templateForLog = "\n${getSensorPrefix()};%.3f;%.3f;%.6f;%.6f;%.6f;%.8f;%.8f;%.8f;%d"
             val statusForLog = String.format(Locale.US, templateForLog,
                     timestamp,
-                    sensorTimestamp,
+                    eventTimestamp,
                     pitch,
                     roll,
                     yaw,
