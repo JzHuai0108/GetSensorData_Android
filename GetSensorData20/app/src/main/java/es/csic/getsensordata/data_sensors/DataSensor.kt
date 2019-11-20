@@ -5,7 +5,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import es.csic.getsensordata.R
 
 abstract class DataSensor(private val context: Context, private val sensorType: Int, private val updateInterval: Double) {
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager?
@@ -33,10 +32,10 @@ abstract class DataSensor(private val context: Context, private val sensorType: 
 
     private fun getSensorDescription(): String =
         """
-            | ${getSensorPrefix()}: ${getSensorName()}
+            | ${getPrefix()}: ${getSensorName()}
         """.trimMargin()
 
-    abstract fun getSensorPrefix(): String
+    abstract fun getPrefix(): String
 
     abstract fun getSensorName(): String
 

@@ -8,7 +8,7 @@ import es.csic.getsensordata.R
 import java.util.*
 
 class MagneticFieldDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_MAGNETIC_FIELD, updateInterval) {
-    override fun getSensorPrefix(): String = "MAGN"
+    override fun getPrefix(): String = "MAGN"
 
     override fun getSensorName(): String =
         if (sensor != null) {
@@ -40,7 +40,7 @@ class MagneticFieldDataSensor(private val context: Context, private val updateIn
         if (eventTimestamp - previousSensorTimestamp > 0) {
             measurementFrequency = (0.9 * measurementFrequency + 0.1 / (eventTimestamp - previousSensorTimestamp)).toFloat()
         } else {
-            Log.e("${getSensorPrefix()} SENSOR", "timestamp < previousTimestamp")
+            Log.e("${getPrefix()} SENSOR", "timestamp < previousTimestamp")
         }
         previousSensorTimestamp = eventTimestamp
 
@@ -57,7 +57,7 @@ class MagneticFieldDataSensor(private val context: Context, private val updateIn
                     event.values[2],
                     measurementFrequency
             )
-            val templateForLog = "\n${getSensorPrefix()};%.3f;%.3f;%.5f;%.5f;%.5f;%d"
+            val templateForLog = "\n${getPrefix()};%.3f;%.3f;%.5f;%.5f;%.5f;%d"
             val statusForLog = String.format(Locale.US, templateForLog,
                     timestamp,
                     eventTimestamp,

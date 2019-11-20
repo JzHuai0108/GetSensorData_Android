@@ -10,7 +10,7 @@ import java.util.*
 import kotlin.math.PI
 
 class RotationVectorDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_ROTATION_VECTOR, updateInterval) {
-    override fun getSensorPrefix(): String = "AHRS"
+    override fun getPrefix(): String = "AHRS"
 
     override fun getSensorName(): String =
         if (sensor != null) {
@@ -73,7 +73,7 @@ class RotationVectorDataSensor(private val context: Context, private val updateI
                     yaw,
                     measurementFrequency
             )
-            val templateForLog = "\n${getSensorPrefix()};%.3f;%.3f;%.6f;%.6f;%.6f;%.8f;%.8f;%.8f;%d"
+            val templateForLog = "\n${getPrefix()};%.3f;%.3f;%.6f;%.6f;%.6f;%.8f;%.8f;%.8f;%d"
             val statusForLog = String.format(Locale.US, templateForLog,
                     timestamp,
                     eventTimestamp,

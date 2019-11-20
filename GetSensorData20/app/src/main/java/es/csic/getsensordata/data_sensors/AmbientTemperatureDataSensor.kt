@@ -8,7 +8,7 @@ import es.csic.getsensordata.R
 import java.util.*
 
 class AmbientTemperatureDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_AMBIENT_TEMPERATURE, updateInterval) {
-    override fun getSensorPrefix(): String = "TEMP"
+    override fun getPrefix(): String = "TEMP"
 
     override fun getSensorName(): String =
         if (sensor != null) {
@@ -40,7 +40,7 @@ class AmbientTemperatureDataSensor(private val context: Context, private val upd
         if (eventTimestamp - previousSensorTimestamp > 0) {
             measurementFrequency = (0.9 * measurementFrequency + 0.1 / (eventTimestamp - previousSensorTimestamp)).toFloat()
         } else {
-            Log.e("${getSensorPrefix()} SENSOR", "timestamp < previousTimestamp")
+            Log.e("${getPrefix()} SENSOR", "timestamp < previousTimestamp")
         }
         previousSensorTimestamp = eventTimestamp
 
@@ -53,7 +53,7 @@ class AmbientTemperatureDataSensor(private val context: Context, private val upd
                     event.values[0],
                     measurementFrequency
             )
-            val templateForLog = "\n${getSensorPrefix()};%.3f;%.3f;%.1f;%d"
+            val templateForLog = "\n${getPrefix()};%.3f;%.3f;%.1f;%d"
             val statusForLog = String.format(Locale.US, templateForLog,
                     timestamp,
                     eventTimestamp,

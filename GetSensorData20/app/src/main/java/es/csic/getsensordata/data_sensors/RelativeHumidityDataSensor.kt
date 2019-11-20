@@ -8,7 +8,7 @@ import es.csic.getsensordata.R
 import java.util.*
 
 class RelativeHumidityDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_RELATIVE_HUMIDITY, updateInterval) {
-    override fun getSensorPrefix(): String = "HUMI"
+    override fun getPrefix(): String = "HUMI"
 
     override fun getSensorName(): String =
         if (sensor != null) {
@@ -40,7 +40,7 @@ class RelativeHumidityDataSensor(private val context: Context, private val updat
         if (eventTimestamp - previousSensorTimestamp > 0) {
             measurementFrequency = (0.9 * measurementFrequency + 0.1 / (eventTimestamp - previousSensorTimestamp)).toFloat()
         } else {
-            Log.e("${getSensorPrefix()} SENSOR", "timestamp < previousTimestamp")
+            Log.e("${getPrefix()} SENSOR", "timestamp < previousTimestamp")
         }
         previousSensorTimestamp = eventTimestamp
 
@@ -53,7 +53,7 @@ class RelativeHumidityDataSensor(private val context: Context, private val updat
                     event.values[0],
                     measurementFrequency
             )
-            val templateForLog = "\n${getSensorPrefix()};%.3f;%.3f;%.1f;%d"
+            val templateForLog = "\n${getPrefix()};%.3f;%.3f;%.1f;%d"
             val statusForLog = String.format(Locale.US, templateForLog,
                     timestamp,
                     eventTimestamp,
