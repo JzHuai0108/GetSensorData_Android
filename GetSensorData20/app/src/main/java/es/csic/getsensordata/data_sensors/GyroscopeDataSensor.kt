@@ -17,7 +17,7 @@ class GyroscopeDataSensor(private val context: Context, private val updateInterv
             context.getString(R.string.gyroscope_sensor_not_detected)
         }
 
-    override fun getSensorFeatures(): String =
+    override fun getFeatures(): String =
         if (sensor != null) {
             """
                 | ${context.getString(R.string.manufacturer)}: ${sensor.vendor},

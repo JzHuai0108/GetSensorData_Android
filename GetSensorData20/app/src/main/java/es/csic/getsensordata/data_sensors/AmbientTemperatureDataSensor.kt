@@ -17,7 +17,7 @@ class AmbientTemperatureDataSensor(private val context: Context, private val upd
             context.getString(R.string.ambient_temperature_sensor_not_detected)
         }
 
-    override fun getSensorFeatures(): String =
+    override fun getFeatures(): String =
         if (sensor != null) {
             """
                 | ${context.getString(R.string.manufacturer)}: ${sensor.vendor},

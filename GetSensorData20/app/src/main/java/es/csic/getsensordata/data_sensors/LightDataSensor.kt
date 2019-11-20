@@ -17,7 +17,7 @@ class LightDataSensor(private val context: Context, private val updateInterval: 
             context.getString(R.string.light_sensor_not_detected)
         }
 
-    override fun getSensorFeatures(): String =
+    override fun getFeatures(): String =
         if (sensor != null) {
             """
                 | ${context.getString(R.string.manufacturer)}: ${sensor.vendor},

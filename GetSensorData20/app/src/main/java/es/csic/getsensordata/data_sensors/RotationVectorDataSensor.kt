@@ -19,7 +19,7 @@ class RotationVectorDataSensor(private val context: Context, private val updateI
             context.getString(R.string.rotation_vector_sensor_not_detected)
         }
 
-    override fun getSensorFeatures(): String =
+    override fun getFeatures(): String =
         if (sensor != null) {
             """
                 | ${context.getString(R.string.manufacturer)}: ${sensor.vendor},

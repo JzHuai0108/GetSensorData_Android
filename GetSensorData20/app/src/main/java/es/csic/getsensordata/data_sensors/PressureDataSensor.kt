@@ -17,7 +17,7 @@ class PressureDataSensor(private val context: Context, private val updateInterva
             context.getString(R.string.pressure_sensor_not_detected)
         }
 
-    override fun getSensorFeatures(): String =
+    override fun getFeatures(): String =
         if (sensor != null) {
             """
                 | ${context.getString(R.string.manufacturer)}: ${sensor.vendor},

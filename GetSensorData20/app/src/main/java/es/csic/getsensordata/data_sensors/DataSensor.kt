@@ -27,19 +27,17 @@ abstract class DataSensor(private val context: Context, private val sensorType: 
     fun getDescription(): String =
         getSensorDescription()
 
-    fun getFeatures(): String =
-        getSensorFeatures()
-
     private fun getSensorDescription(): String =
         """
             | ${getPrefix()}: ${getName()}
         """.trimMargin()
 
+    open fun getFeatures(): String =
+        ""
+
     abstract fun getPrefix(): String
 
     abstract fun getName(): String
-
-    abstract fun getSensorFeatures(): String
 
     fun registerListener(listener: SensorEventListener, samplingPeriodUs: Int) {
         sensorManager?.registerListener(listener, sensor, samplingPeriodUs)

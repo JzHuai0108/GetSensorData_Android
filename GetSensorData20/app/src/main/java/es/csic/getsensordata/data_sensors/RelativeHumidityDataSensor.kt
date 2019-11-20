@@ -17,7 +17,7 @@ class RelativeHumidityDataSensor(private val context: Context, private val updat
             context.getString(R.string.relative_humidity_sensor_not_detected)
         }
 
-    override fun getSensorFeatures(): String =
+    override fun getFeatures(): String =
         if (sensor != null) {
             """
                 | ${context.getString(R.string.manufacturer)}: ${sensor.vendor},

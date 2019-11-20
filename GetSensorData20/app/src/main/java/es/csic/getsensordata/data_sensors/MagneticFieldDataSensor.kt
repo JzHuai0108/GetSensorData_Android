@@ -17,7 +17,7 @@ class MagneticFieldDataSensor(private val context: Context, private val updateIn
             context.getString(R.string.magnetic_field_sensor_not_detected)
         }
 
-    override fun getSensorFeatures(): String =
+    override fun getFeatures(): String =
         if (sensor != null) {
             """
                 | ${context.getString(R.string.manufacturer)}: ${sensor.vendor},
