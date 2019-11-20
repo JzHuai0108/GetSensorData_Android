@@ -10,7 +10,7 @@ import java.util.*
 class GyroscopeDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_GYROSCOPE, updateInterval) {
     override fun getPrefix(): String = "GYRO"
 
-    override fun getSensorName(): String =
+    override fun getName(): String =
         if (sensor != null) {
             sensor.name
         } else {

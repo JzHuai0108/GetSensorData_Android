@@ -10,7 +10,7 @@ import java.util.*
 class AccelerometerDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_ACCELEROMETER, updateInterval) {
     override fun getPrefix(): String = "ACCE"
 
-    override fun getSensorName(): String =
+    override fun getName(): String =
         if (sensor != null) {
             sensor.name
         } else {

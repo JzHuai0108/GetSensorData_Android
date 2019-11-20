@@ -10,7 +10,7 @@ import java.util.*
 class MagneticFieldDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_MAGNETIC_FIELD, updateInterval) {
     override fun getPrefix(): String = "MAGN"
 
-    override fun getSensorName(): String =
+    override fun getName(): String =
         if (sensor != null) {
             sensor.name
         } else {

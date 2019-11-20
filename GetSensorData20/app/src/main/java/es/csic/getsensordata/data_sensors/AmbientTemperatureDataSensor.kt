@@ -10,7 +10,7 @@ import java.util.*
 class AmbientTemperatureDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_AMBIENT_TEMPERATURE, updateInterval) {
     override fun getPrefix(): String = "TEMP"
 
-    override fun getSensorName(): String =
+    override fun getName(): String =
         if (sensor != null) {
             sensor.name
         } else {

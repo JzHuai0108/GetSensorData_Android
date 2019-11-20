@@ -10,7 +10,7 @@ import java.util.*
 class LightDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_LIGHT, updateInterval) {
     override fun getPrefix(): String = "LIGH"
 
-    override fun getSensorName(): String =
+    override fun getName(): String =
         if (sensor != null) {
             sensor.name
         } else {

@@ -10,7 +10,7 @@ import java.util.*
 class ProximityDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_PROXIMITY, updateInterval) {
     override fun getPrefix(): String = "PROX"
 
-    override fun getSensorName(): String =
+    override fun getName(): String =
         if (sensor != null) {
             sensor.name
         } else {

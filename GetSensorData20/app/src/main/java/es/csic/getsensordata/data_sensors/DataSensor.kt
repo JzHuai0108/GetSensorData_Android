@@ -32,12 +32,12 @@ abstract class DataSensor(private val context: Context, private val sensorType: 
 
     private fun getSensorDescription(): String =
         """
-            | ${getPrefix()}: ${getSensorName()}
+            | ${getPrefix()}: ${getName()}
         """.trimMargin()
 
     abstract fun getPrefix(): String
 
-    abstract fun getSensorName(): String
+    abstract fun getName(): String
 
     abstract fun getSensorFeatures(): String
 

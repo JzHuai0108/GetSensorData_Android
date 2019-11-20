@@ -10,7 +10,7 @@ import java.util.*
 class RelativeHumidityDataSensor(private val context: Context, private val updateInterval: Double): DataSensor(context, Sensor.TYPE_RELATIVE_HUMIDITY, updateInterval) {
     override fun getPrefix(): String = "HUMI"
 
-    override fun getSensorName(): String =
+    override fun getName(): String =
         if (sensor != null) {
             sensor.name
         } else {
