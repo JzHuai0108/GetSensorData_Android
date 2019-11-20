@@ -24,11 +24,8 @@ abstract class DataSensor(private val context: Context, private val sensorType: 
         sensor = sensorManager?.getDefaultSensor(sensorType)
     }
 
-    fun getDescription(): String =
-        getSensorDescription()
-
-    private fun getSensorDescription(): String =
-        """
+    open fun getDescription(): String =
+            """
             | ${getPrefix()}: ${getName()}
         """.trimMargin()
 
