@@ -52,6 +52,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
+
+import es.csic.getsensordata.data_sensors.StatusDestination;
 import kotlin.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -2211,12 +2213,11 @@ public class MainActivity extends Activity implements SensorEventListener, Locat
 				break;
 		}
 		if (dataSensorChanged) {
-			Pair<String, String> sensorStatus = dataSensor.getStatus(event);
-			if (sensorStatus != null) {
-				String statusForScreen = sensorStatus.component1();
+			String statusForScreen = dataSensor.getStatus(StatusDestination.Screen, event);
+			if (!statusForScreen.equals("")) {
 				textView.setText(statusForScreen);
 				if (obj_ToggleButtonSave.isChecked()) {
-					String statusForLog = sensorStatus.component2();
+					String statusForLog = dataSensor.getStatus(StatusDestination.Log, event);
 					try {
 						fout.write(statusForLog);
 					} catch (IOException e) {

@@ -6,6 +6,11 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 
+enum class StatusDestination {
+    Screen,
+    Log
+}
+
 abstract class DataSensor(private val context: Context, private val sensorType: Int, private val updateInterval: Double) {
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager?
     val sensor: Sensor?
@@ -40,7 +45,15 @@ abstract class DataSensor(private val context: Context, private val sensorType: 
         sensorManager?.registerListener(listener, sensor, samplingPeriodUs)
     }
 
-    abstract fun getStatus(event: SensorEvent): Pair<String, String>?
+    abstract fun getStatusForScreen(event: SensorEvent): String
+    abstract fun getStatusForLog(event: SensorEvent): String
+
+    fun getStatus(destination: StatusDestination, event: SensorEvent): String {
+        return when(destination) {
+            StatusDestination.Screen -> getStatusForScreen(event)
+            StatusDestination.Log -> getStatusForLog(event)
+        }
+    }
 
     fun getTimestamp(event: SensorEvent): Double =
         event.timestamp.toDouble() * 1e-9

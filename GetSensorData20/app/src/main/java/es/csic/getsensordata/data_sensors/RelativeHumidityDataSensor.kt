@@ -31,7 +31,7 @@ class RelativeHumidityDataSensor(private val context: Context, private val updat
             context.getString(R.string.no_features)
         }
 
-    override fun getStatus(event: SensorEvent): Pair<String, String>? {
+    override fun getStatusForScreen(event: SensorEvent): String {
         counter += 1
 
         val eventTimestamp = getTimestamp(event)
@@ -44,26 +44,31 @@ class RelativeHumidityDataSensor(private val context: Context, private val updat
         }
         previousSensorTimestamp = eventTimestamp
 
-        if (timestamp - previousUpdateTimestamp > updateInterval) {
+        return if (timestamp - previousUpdateTimestamp > updateInterval) {
+            previousUpdateTimestamp = timestamp
             val templateForScreen = """
                 |   Relative Humidity: %8.1f
                 |                               Freq: %5.0f Hz
             """.trimMargin()
-            val statusForScreen = String.format(Locale.US, templateForScreen,
+            String.format(Locale.US, templateForScreen,
                     event.values[0],
                     measurementFrequency
             )
-            val templateForLog = "\n${getPrefix()};%.3f;%.3f;%.1f;%d"
-            val statusForLog = String.format(Locale.US, templateForLog,
-                    timestamp,
-                    eventTimestamp,
-                    event.values[0],
-                    event.accuracy
-            )
-            previousUpdateTimestamp = timestamp
-            return Pair(statusForScreen, statusForLog)
         } else {
-            return null
+            ""
         }
+    }
+
+    override fun getStatusForLog(event: SensorEvent): String {
+        val eventTimestamp = getTimestamp(event)
+        val timestamp = getTimestamp()
+
+        val templateForLog = "\n${getPrefix()};%.3f;%.3f;%.1f;%d"
+        return String.format(Locale.US, templateForLog,
+                timestamp,
+                eventTimestamp,
+                event.values[0],
+                event.accuracy
+        )
     }
 }
