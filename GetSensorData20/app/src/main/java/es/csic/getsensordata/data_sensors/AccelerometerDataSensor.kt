@@ -51,6 +51,7 @@ class AccelerometerDataSensor(private val context: Context, private val updateIn
                 |   Acc(Z): %10.5f  m/s^2
                 |                               Freq: %5.0f Hz
             """.trimMargin()
+            previousUpdateTimestamp = timestamp
             String.format(Locale.US, templateForScreen,
                 event.values[0],
                 event.values[1],
