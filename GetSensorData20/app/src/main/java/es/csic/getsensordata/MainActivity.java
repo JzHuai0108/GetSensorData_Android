@@ -51,6 +51,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
 import es.csic.getsensordata.data_sensors.StatusDestination;
@@ -84,7 +85,7 @@ import es.csic.getsensordata.data_sensors.ProximityDataSensor;
 import es.csic.getsensordata.data_sensors.RelativeHumidityDataSensor;
 import es.csic.getsensordata.data_sensors.RotationVectorDataSensor;
 
-public class MainActivity extends Activity implements SensorEventListener, LocationListener, GpsStatus.Listener {
+public class MainActivity extends AppCompatActivity implements SensorEventListener, LocationListener, GpsStatus.Listener {
 	// Flags:
 	private Boolean Flag_Discover_Bluetooth=false;
 	private Boolean flag_Trace=false;
