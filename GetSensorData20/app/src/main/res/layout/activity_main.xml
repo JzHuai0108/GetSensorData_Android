@@ -17,7 +17,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textOff="@string/texto_Show_Sensor_Features"
-            android:textOn="@string/texto_Hide_Sensor_Features" />
+            android:textOn="@string/texto_Hide_Sensor_Features"
+            android:textAllCaps="false" />
 
         <ToggleButton
             android:id="@+id/togglebutton2"
@@ -25,7 +26,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textOff="@string/texto_Display_Real_time_Data"
-            android:textOn="@string/texto_Hide_Real_time_Data" />
+            android:textOn="@string/texto_Hide_Real_time_Data"
+            android:textAllCaps="false" />
 
         <ToggleButton
             android:id="@+id/togglebuttonsave"
@@ -33,7 +35,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textOff="@string/texto_Save_Log_file"
-            android:textOn="@string/texto_Stop_Saving_file" />
+            android:textOn="@string/texto_Stop_Saving_file"
+            android:textAllCaps="false" />
     </LinearLayout>
 
 
@@ -546,7 +549,8 @@
         <Button android:id="@+id/BtnBotonMarkPosition"
             android:text="@string/MarkPosition"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textAllCaps="false" />
 
     </LinearLayout>
 
