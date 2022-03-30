@@ -1105,10 +1105,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 					try {
 						if (mExternalStorageAvailable) {
-							File path = Environment.getExternalStoragePublicDirectory("LogFiles_GetSensorData");
-							Log.i("OnCheckedChanged","Path donde guardo - ExternalStoragePublic: "+path);
-							path.mkdirs();  // asegurarse que el directorio "./../LogFiles_GetSensorData" existe
-							File fichero = new File(path.getAbsolutePath(), "logfile_"+str_fecha_actual+".txt");
+							String dir = getExternalFilesDir(
+									Environment.getDataDirectory().getAbsolutePath()).getAbsolutePath();
+
+							// dir are always available for the app even the
+							// write external storage permission is not granted.
+							// "Apparently in Marshmallow when you install with Android studio it
+							// never asks you if you should give it permission it just quietly
+							// fails, like you denied it. You must go into Settings, apps, select
+							// your application and flip the permission switch on."
+							// ref: https://stackoverflow.com/questions/40087355/android-mkdirs-not-working
+							// String outputDir = dir + File.separator + "LogFiles_GetSensorData";
+							// (new File(outputDir)).mkdirs();
+							File fichero = new File(dir, "logfile_"+str_fecha_actual+".txt");
 							fout =	new OutputStreamWriter(	new FileOutputStream(fichero));
 							Log.i("OncheckedChanged","Abierto fichero 'Externo' para escribir");
 						} else {
