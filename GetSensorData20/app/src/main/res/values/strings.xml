@@ -12,6 +12,8 @@
     <string name="texto_external">External Sensors:</string>
     <string name="texto_Save_Log_file">Start Saving a Log File</string>
     <string name="texto_Stop_Saving_file">Stop Saving Log File</string>
+    <string name="texto_Save_Log_Timeout">Save a Log File with Timeout</string>
+    <string name="texto_Saving_Timeout">Getting ready!</string>
     <string name="texto_Show_Sensor_Features">Show Sensor Features</string>
     <string name="texto_Display_Real_time_Data">Show Real-time Data</string>
     <string name="texto_Hide_Sensor_Features">Hide Sensor Features</string>

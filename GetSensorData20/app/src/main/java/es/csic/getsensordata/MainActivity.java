@@ -28,6 +28,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -46,6 +48,7 @@ import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
@@ -110,6 +113,27 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 	private Timer timerWifi;          // Timer
 	private Timer timerBlue;          // Timer
 	private Timer timerReloj;          // Timer
+
+
+	public class SaveLogTimer extends CountDownTimer {
+		public SaveLogTimer(long startTime, long interval) {
+			super(startTime, interval);
+		}
+
+		@Override
+		public void onFinish() {
+			obj_ToggleButtonSaveTimeout.setChecked(false);
+			enable(obj_ToggleButtonSave);
+		}
+
+		@Override
+		public void onTick(long millisUntilFinished) {
+			obj_ToggleButtonSaveTimeout.setText((long)(millisUntilFinished * 0.001) +" s remain.");
+		}
+	}
+    private SaveLogTimer countdownTimer;
+    private volatile boolean waitForLogging = false;
+
 	OnRecordPositionUpdateListener mRecordAudioListener;
 	Handler handlerRFID;
 	int num_connected_RFIDReader=0;
@@ -217,6 +241,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 	ToggleButton obj_toggleButton1;
 	ToggleButton obj_toggleButton2;
 	ToggleButton obj_ToggleButtonSave;
+	ToggleButton obj_ToggleButtonSaveTimeout;
 	OutputStreamWriter fout;
 	boolean primer_sensor_cambia=true;
 	long tiempo_inicial_ns_raw=0;
@@ -346,6 +371,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 		poner_manejador_boton1();
 		poner_manejador_boton2();
 		poner_manejador_botonSave();
+		poner_manejador_botonSaveTimeout();
 		poner_manejador_boton_MarkPosition();
 
 		obj_txtView0.setText("Phone: " + phone_manufacturer+"  "+ phone_model+"  API"+phone_version+"  Android_"+phone_versionRelease);
@@ -872,6 +898,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 		obj_ToggleButtonSave = (ToggleButton)findViewById(R.id.togglebuttonsave);
 		obj_ToggleButtonSave.setChecked(false);
 		obj_btnBotonMarkPosition = (Button)findViewById(R.id.BtnBotonMarkPosition);
+		obj_ToggleButtonSaveTimeout = (ToggleButton)findViewById(R.id.togglebuttonsavetimeout);
+		obj_ToggleButtonSaveTimeout.setChecked(false);
 	}
 
 	private void poner_manejador_boton_MarkPosition() {
@@ -1032,6 +1060,155 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 		});
 	}
 
+	public class StorageStatus {
+		boolean mExternalStorageAvailable = false;
+		boolean mExternalStorageWriteable = false;
+
+		public void updateStatus() {
+			// Probar si es posible realizar almacenamiento externo
+			String state = Environment.getExternalStorageState();
+
+			if (Environment.MEDIA_MOUNTED.equals(state)) {
+				// We can read and write the media
+				mExternalStorageAvailable = mExternalStorageWriteable = true;
+			} else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+				// We can only read the media
+				mExternalStorageAvailable = true;
+				mExternalStorageWriteable = false;
+			} else {
+				// Something else is wrong. It may be one of many other states, but all we need
+				//  to know is we can neither read nor write
+				mExternalStorageAvailable = mExternalStorageWriteable = false;
+			}
+			Log.i("OnCreate", "ALMACENAMIENTO EXTERNO:" + mExternalStorageAvailable + mExternalStorageWriteable);
+		}
+	}
+
+	private void startSavingLogfile(StorageStatus storageStatus) {
+		long CpuTimeStamp = System.nanoTime(); // in nano seconds
+		if (primer_sensor_cambia) {
+			tiempo_inicial_ns_raw = CpuTimeStamp;  // en nano segundos
+			Log.i("", "Tiempo inicial: " + tiempo_inicial_ns_raw + " ms");
+			timestamp_Acce_last_update = 0;
+			timestamp_Gyro_last_update = 0;
+			timestamp_Magn_last_update = 0;
+			timestamp_Pres_last_update = 0;
+			timestamp_Ligh_last_update = 0;
+			timestamp_Prox_last_update = 0;
+			timestamp_Humi_last_update = 0;
+			timestamp_Temp_last_update = 0;
+			timestamp_Ahrs_last_update = 0;
+			timestamp_Gnss_last_update = 0;
+			timestamp_Wifi_last_update = 0;
+			timestamp_Blue_last_update = 0;
+			timestamp_Ble4_last_update = 0;
+			timestamp_Soun_last_update = 0;
+			timestamp_Rfid_last_update = 0;
+			timestamp_Imul_last_update = 0;
+			timestamp_Imux_last_update = 0;
+			timestamp_MIMU22BT_last_update = 0;
+
+			accelerometerDataSensor.setEpoch(tiempo_inicial_ns_raw);
+			gyroscopeDataSensor.setEpoch(tiempo_inicial_ns_raw);
+			magneticFieldDataSensor.setEpoch(tiempo_inicial_ns_raw);
+			pressureDataSensor.setEpoch(tiempo_inicial_ns_raw);
+			lightDataSensor.setEpoch(tiempo_inicial_ns_raw);
+			proximityDataSensor.setEpoch(tiempo_inicial_ns_raw);
+			relativeHumidityDataSensor.setEpoch(tiempo_inicial_ns_raw);
+			ambientTemperatureDataSensor.setEpoch(tiempo_inicial_ns_raw);
+			rotationVectorDataSensor.setEpoch(tiempo_inicial_ns_raw);
+		}
+
+		SimpleDateFormat sf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss", Locale.US);  // formato de la fecha
+		Date fecha_actual = new Date();  // coger la fecha de hoy
+		String str_fecha_actual = sf.format(fecha_actual);  // formatear fecha
+
+		try {
+			if (storageStatus.mExternalStorageAvailable) {
+				String dir = getExternalFilesDir(
+						Environment.getDataDirectory().getAbsolutePath()).getAbsolutePath();
+
+				// dir are always available for the app even the
+				// write external storage permission is not granted.
+				// "Apparently in Marshmallow when you install with Android studio it
+				// never asks you if you should give it permission it just quietly
+				// fails, like you denied it. You must go into Settings, apps, select
+				// your application and flip the permission switch on."
+				// ref: https://stackoverflow.com/questions/40087355/android-mkdirs-not-working
+				// String outputDir = dir + File.separator + "LogFiles_GetSensorData";
+				// (new File(outputDir)).mkdirs();
+				File fichero = new File(dir, "logfile_" + str_fecha_actual + ".txt");
+				fout = new OutputStreamWriter(new FileOutputStream(fichero));
+				Log.i("OncheckedChanged", "Abierto fichero 'Externo' para escribir");
+			} else {
+				fout = new OutputStreamWriter(openFileOutput("logfile_" + str_fecha_actual + ".txt", Context.MODE_PRIVATE));
+				Log.i("OncheckedChanged", "Abierto fichero 'Interno' para escribir");
+			}
+
+			Toast.makeText(getApplicationContext(), "Saving sensor data", Toast.LENGTH_SHORT).show();
+
+			fout.write("% LogFile created by the 'GetSensorData' App for Android.");
+			fout.write("\n% Date of creation: " + fecha_actual.toString());
+			fout.write("\n% Developed by LOPSI research group at CAR-CSIC, Spain (http://www.car.upm-csic.es/lopsi)");
+			fout.write("\n% Version 2.1 January 2018");
+			fout.write("\n% The 'GetSensorData' program stores information from Smartphone/Tablet internal sensors (Accelerometers, Gyroscopes, Magnetometers, Pressure, Ambient Light, Orientation, Sound level, GPS/GNSS positio, WiFi RSS, Cellular/GSM/3G signal strength,...) and also from external devices (e.g. RFCode RFID reader, XSens IMU, LPMS-B IMU or MIMU22BT)");
+			fout.write("\n%\n% Phone used for this logfile:");
+			fout.write("\n% Manufacturer:            \t" + phone_manufacturer);
+			fout.write("\n% Model:                   \t" + phone_model);
+			fout.write("\n% API Android version:     \t" + phone_version);
+			fout.write("\n% Android version Release: \t" + phone_versionRelease);
+			fout.write("\n%\n% LogFile Data format:");
+			fout.write("\n% Accelerometer data: \t'ACCE;AppTimestamp(s);SensorTimestamp(s);Acc_X(m/s^2);Acc_Y(m/s^2);Acc_Z(m/s^2);Accuracy(integer)'");
+			fout.write("\n% Gyroscope data:     \t'GYRO;AppTimestamp(s);SensorTimestamp(s);Gyr_X(rad/s);Gyr_Y(rad/s);Gyr_Z(rad/s);Accuracy(integer)'");
+			fout.write("\n% Magnetometer data:  \t'MAGN;AppTimestamp(s);SensorTimestamp(s);Mag_X(uT);;Mag_Y(uT);Mag_Z(uT);Accuracy(integer)'");
+			fout.write("\n% Pressure data:      \t'PRES;AppTimestamp(s);SensorTimestamp(s);Pres(mbar);Accuracy(integer)'");
+			fout.write("\n% Light data:         \t'LIGH;AppTimestamp(s);SensorTimestamp(s);Light(lux);Accuracy(integer)'");
+			fout.write("\n% Proximity data:     \t'PROX;AppTimestamp(s);SensorTimestamp(s);prox(?);Accuracy(integer)'");
+			fout.write("\n% Humidity data:      \t'HUMI;AppTimestamp(s);SensorTimestamp(s);humi(Percentage);Accuracy(integer)'");
+			fout.write("\n% Temperature data:   \t'TEMP;AppTimestamp(s);SensorTimestamp(s);temp(Celsius);Accuracy(integer)'");
+			fout.write("\n% Orientation data:   \t'AHRS;AppTimestamp(s);SensorTimestamp(s);PitchX(deg);RollY(deg);YawZ(deg);Quat(2);Quat(3);Quat(4);Accuracy(int)'");
+			fout.write("\n% GNSS/GPS data:      \t'GNSS;AppTimestamp(s);SensorTimeStamp(s);Latit(deg);Long(deg);Altitude(m);Bearing(deg);Accuracy(m);Speed(m/s);SatInView;SatInUse'");
+			fout.write("\n% WIFI data:          \t'WIFI;AppTimestamp(s);SensorTimeStamp(s);Name_SSID;MAC_BSSID;Frequency;RSS(dBm);'"); // Added frequency by jtorres
+			// fout.write("\n% WIFI data:          \t'WIFI;AppTimestamp(s);SensorTimeStamp(s);Name_SSID;MAC_BSSID;RSS(dBm);'");               original
+			fout.write("\n% Bluetooth data:     \t'BLUE;AppTimestamp(s);Name;MAC_Address;RSS(dBm);'");
+			fout.write("\n% BLE 4.0 data:       \t'BLE4;AppTimestamp(s);iBeacon;MAC;RSSI(dBm);Power;MajorID;MinorID;UUID'"); // Added power and UUID by jtorres
+			// fout.write("\n% BLE 4.0 data:       \t'BLE4;AppTimestamp(s);iBeacon;MAC;RSSI(dBm);MajorID;MinorID;'");               original
+			fout.write("\n% BLE 4.0 data:       \t'BLE4;AppTimestamp(s);Eddystone;MAC;RSSI(dBm);instanceID;OptionalTelemetry[voltaje;temperature;uptime;count]");
+			fout.write("\n% Sound data:         \t'SOUN;AppTimestamp(s);RMS;Pressure(Pa);SPL(dB);'");
+			fout.write("\n% RFID Reader data:   \t'RFID;AppTimestamp(s);ReaderNumber(int);TagID(int);RSS_A(dBm);RSS_B(dBm);'");
+			fout.write("\n% IMU XSens data:     \t'IMUX;AppTimestamp(s);SensorTimestamp(s);Counter;Acc_X(m/s^2);Acc_Y(m/s^2);Acc_Z(m/s^2);Gyr_X(rad/s);Gyr_Y(rad/s);Gyr_Z(rad/s);Mag_X(uT);;Mag_Y(uT);Mag_Z(uT);Roll(deg);Pitch(deg);Yaw(deg);Quat(1);Quat(2);Quat(3);Quat(4);Pressure(mbar);Temp(Celsius)'");
+			fout.write("\n% IMU LPMS-B data:    \t'IMUL;AppTimestamp(s);SensorTimestamp(s);Counter;Acc_X(m/s^2);Acc_Y(m/s^2);Acc_Z(m/s^2);Gyr_X(rad/s);Gyr_Y(rad/s);Gyr_Z(rad/s);Mag_X(uT);;Mag_Y(uT);Mag_Z(uT);Roll(deg);Pitch(deg);Yaw(deg);Quat(1);Quat(2);Quat(3);Quat(4);Pressure(mbar);Temp(Celsius)'");
+			fout.write("\n% IMU MIMU22BT data:  \t'IMUI;AppTimestamp(s);Packet_count;Step_Counter;delta_X(m);delta_Y(m);delta_Z(m);delta_theta(degrees);Covariance4x4[1:10]'");
+			fout.write("\n% POSI Reference:    	\t'POSI;Timestamp(s);Counter;Latitude(degrees); Longitude(degrees);floor ID(0,1,2..4);Building ID(0,1,2..3);'");
+			fout.write("\n% ");
+			fout.write("\n% Note that there are two timestamps: ");
+			fout.write("\n%  -'AppTimestamp' is set by the Android App as data is read. It is not representative of when data is actually captured by the sensor (but has a common time reference for all sensors)");
+			fout.write("\n%  -'SensorTimestamp' is set by the sensor itself (the delta_time=SensorTimestamp(k)-SensorTimestamp(k-1) between two consecutive samples is an accurate estimate of the sampling interval). This timestamp is better for integrating inertial data. \n");
+		} catch (Exception ex) {
+			Log.e("Ficheros", "Error al escribir fichero a memoria del dispositivo");
+		}
+		// Lanzar el Timer a 1Hz de Pintar los segundos trascurridos con timer
+		poner_manejador_Reloj();
+		timerReloj = new Timer("Hilo Timer Reloj");
+		timerReloj.schedule(TaskReloj, 1000, 1000);  // llamar a Timer cada 1 segundo (con retardo inicial de 1s)
+	}
+
+	private void stopSavingLogfile() {
+		// Parar el Timer a 1Hz de Pintar los segundos trascurridos con timer
+		timerReloj.cancel();
+
+		Log.i("Oncheckedchanged", "Botón Save pulsado para parar de grabar!. Cierro el fichero");
+		try {
+			primer_sensor_cambia = true;  // resetear marca tiempo
+			tiempo_inicial_ns_raw = 0;
+			fout.close();
+			Toast.makeText(getApplicationContext(), "End of Saving", Toast.LENGTH_SHORT).show();
+
+		} catch (Exception ex) {
+			Log.e("Ficheros", "Error al intentar cerrar el fichero de memoria interna");
+		}
+	}
+
 	private void poner_manejador_botonSave() {
 		if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 			ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
@@ -1041,152 +1218,71 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 		// Manejador de ToggleButtonSave
 		obj_ToggleButtonSave.setOnCheckedChangeListener(new ToggleButton.OnCheckedChangeListener() {
 			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				// Probar si es posible realizar almacenamiento externo 
-				boolean mExternalStorageAvailable = false;
-				boolean mExternalStorageWriteable = false;
-				String state = Environment.getExternalStorageState();
-
-				if (Environment.MEDIA_MOUNTED.equals(state)) {
-					// We can read and write the media
-					mExternalStorageAvailable = mExternalStorageWriteable = true;
-				} else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-					// We can only read the media
-					mExternalStorageAvailable = true;
-					mExternalStorageWriteable = false;
-				} else {
-					// Something else is wrong. It may be one of many other states, but all we need
-					//  to know is we can neither read nor write
-					mExternalStorageAvailable = mExternalStorageWriteable = false;
-				}
-				Log.i("OnCreate","ALMACENAMIENTO EXTERNO:"+mExternalStorageAvailable+mExternalStorageWriteable);
-
+				StorageStatus storageStatus = new StorageStatus();
+				storageStatus.updateStatus();
 				// Intentar almacenar o cerrar
 				if (obj_ToggleButtonSave.isChecked())  // Comenzar a grabar
 				{
-					Log.i("OnCheckedchanged","Botón Save pulsado!. Me pongo a grabar...");
+					Log.i("OnCheckedchanged", "Botón Save pulsado!. Me pongo a grabar...");
+					disable(obj_ToggleButtonSaveTimeout);
+					startSavingLogfile(storageStatus);
+				} else { // Parar de grabar
+					stopSavingLogfile();
+					enable(obj_ToggleButtonSaveTimeout);
+				}
+			}
+		});
+	}
 
-					long CpuTimeStamp = System.nanoTime(); // in nano seconds
-					if (primer_sensor_cambia && obj_ToggleButtonSave.isChecked()) {
-						tiempo_inicial_ns_raw=CpuTimeStamp;  // en nano segundos
-						Log.i("","Tiempo inicial: "+tiempo_inicial_ns_raw+" ms");
-						timestamp_Acce_last_update=0;
-						timestamp_Gyro_last_update=0;
-						timestamp_Magn_last_update=0;
-						timestamp_Pres_last_update=0;
-						timestamp_Ligh_last_update=0;
-						timestamp_Prox_last_update=0;
-						timestamp_Humi_last_update=0;
-						timestamp_Temp_last_update=0;
-						timestamp_Ahrs_last_update=0;
-						timestamp_Gnss_last_update=0;
-						timestamp_Wifi_last_update=0;
-						timestamp_Blue_last_update=0;
-						timestamp_Ble4_last_update=0;
-						timestamp_Soun_last_update=0;
-						timestamp_Rfid_last_update=0;
-						timestamp_Imul_last_update=0;
-						timestamp_Imux_last_update=0;
-						timestamp_MIMU22BT_last_update=0;
+	static void disable(View view) {
+		view.getBackground().setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
+		view.setClickable(false);
+	}
 
-						accelerometerDataSensor.setEpoch(tiempo_inicial_ns_raw);
-						gyroscopeDataSensor.setEpoch(tiempo_inicial_ns_raw);
-						magneticFieldDataSensor.setEpoch(tiempo_inicial_ns_raw);
-						pressureDataSensor.setEpoch(tiempo_inicial_ns_raw);
-						lightDataSensor.setEpoch(tiempo_inicial_ns_raw);
-						proximityDataSensor.setEpoch(tiempo_inicial_ns_raw);
-						relativeHumidityDataSensor.setEpoch(tiempo_inicial_ns_raw);
-						ambientTemperatureDataSensor.setEpoch(tiempo_inicial_ns_raw);
-						rotationVectorDataSensor.setEpoch(tiempo_inicial_ns_raw);
-					}
+	static void enable(View view) {
+		view.getBackground().setColorFilter(null);
+		view.setClickable(true);
+	}
 
-					SimpleDateFormat sf = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss",Locale.US);  // formato de la fecha
-					Date fecha_actual = new Date();  // coger la fecha de hoy
-					String str_fecha_actual = sf.format(fecha_actual);  // formatear fecha
-
-					try {
-						if (mExternalStorageAvailable) {
-							String dir = getExternalFilesDir(
-									Environment.getDataDirectory().getAbsolutePath()).getAbsolutePath();
-
-							// dir are always available for the app even the
-							// write external storage permission is not granted.
-							// "Apparently in Marshmallow when you install with Android studio it
-							// never asks you if you should give it permission it just quietly
-							// fails, like you denied it. You must go into Settings, apps, select
-							// your application and flip the permission switch on."
-							// ref: https://stackoverflow.com/questions/40087355/android-mkdirs-not-working
-							// String outputDir = dir + File.separator + "LogFiles_GetSensorData";
-							// (new File(outputDir)).mkdirs();
-							File fichero = new File(dir, "logfile_"+str_fecha_actual+".txt");
-							fout =	new OutputStreamWriter(	new FileOutputStream(fichero));
-							Log.i("OncheckedChanged","Abierto fichero 'Externo' para escribir");
-						} else {
-							fout=	new OutputStreamWriter(	openFileOutput("logfile_"+str_fecha_actual+".txt", Context.MODE_PRIVATE));
-							Log.i("OncheckedChanged","Abierto fichero 'Interno' para escribir");
-						}
-
-						Toast.makeText(getApplicationContext(), "Saving sensor data", Toast.LENGTH_SHORT).show();
-
-						fout.write("% LogFile created by the 'GetSensorData' App for Android.");
-						fout.write("\n% Date of creation: "+fecha_actual.toString());
-						fout.write("\n% Developed by LOPSI research group at CAR-CSIC, Spain (http://www.car.upm-csic.es/lopsi)");
-						fout.write("\n% Version 2.1 January 2018");
-						fout.write("\n% The 'GetSensorData' program stores information from Smartphone/Tablet internal sensors (Accelerometers, Gyroscopes, Magnetometers, Pressure, Ambient Light, Orientation, Sound level, GPS/GNSS positio, WiFi RSS, Cellular/GSM/3G signal strength,...) and also from external devices (e.g. RFCode RFID reader, XSens IMU, LPMS-B IMU or MIMU22BT)");
-						fout.write("\n%\n% Phone used for this logfile:");
-						fout.write("\n% Manufacturer:            \t"+phone_manufacturer);
-						fout.write("\n% Model:                   \t"+phone_model);
-						fout.write("\n% API Android version:     \t"+phone_version);
-						fout.write("\n% Android version Release: \t"+phone_versionRelease);
-						fout.write("\n%\n% LogFile Data format:");
-						fout.write("\n% Accelerometer data: \t'ACCE;AppTimestamp(s);SensorTimestamp(s);Acc_X(m/s^2);Acc_Y(m/s^2);Acc_Z(m/s^2);Accuracy(integer)'");
-						fout.write("\n% Gyroscope data:     \t'GYRO;AppTimestamp(s);SensorTimestamp(s);Gyr_X(rad/s);Gyr_Y(rad/s);Gyr_Z(rad/s);Accuracy(integer)'");
-						fout.write("\n% Magnetometer data:  \t'MAGN;AppTimestamp(s);SensorTimestamp(s);Mag_X(uT);;Mag_Y(uT);Mag_Z(uT);Accuracy(integer)'");
-						fout.write("\n% Pressure data:      \t'PRES;AppTimestamp(s);SensorTimestamp(s);Pres(mbar);Accuracy(integer)'");
-						fout.write("\n% Light data:         \t'LIGH;AppTimestamp(s);SensorTimestamp(s);Light(lux);Accuracy(integer)'");
-						fout.write("\n% Proximity data:     \t'PROX;AppTimestamp(s);SensorTimestamp(s);prox(?);Accuracy(integer)'");
-						fout.write("\n% Humidity data:      \t'HUMI;AppTimestamp(s);SensorTimestamp(s);humi(Percentage);Accuracy(integer)'");
-						fout.write("\n% Temperature data:   \t'TEMP;AppTimestamp(s);SensorTimestamp(s);temp(Celsius);Accuracy(integer)'");
-						fout.write("\n% Orientation data:   \t'AHRS;AppTimestamp(s);SensorTimestamp(s);PitchX(deg);RollY(deg);YawZ(deg);Quat(2);Quat(3);Quat(4);Accuracy(int)'");
-						fout.write("\n% GNSS/GPS data:      \t'GNSS;AppTimestamp(s);SensorTimeStamp(s);Latit(deg);Long(deg);Altitude(m);Bearing(deg);Accuracy(m);Speed(m/s);SatInView;SatInUse'");
-						fout.write("\n% WIFI data:          \t'WIFI;AppTimestamp(s);SensorTimeStamp(s);Name_SSID;MAC_BSSID;Frequency;RSS(dBm);'"); // Added frequency by jtorres
-						// fout.write("\n% WIFI data:          \t'WIFI;AppTimestamp(s);SensorTimeStamp(s);Name_SSID;MAC_BSSID;RSS(dBm);'");               original
-						fout.write("\n% Bluetooth data:     \t'BLUE;AppTimestamp(s);Name;MAC_Address;RSS(dBm);'");
-						fout.write("\n% BLE 4.0 data:       \t'BLE4;AppTimestamp(s);iBeacon;MAC;RSSI(dBm);Power;MajorID;MinorID;UUID'"); // Added power and UUID by jtorres
-						// fout.write("\n% BLE 4.0 data:       \t'BLE4;AppTimestamp(s);iBeacon;MAC;RSSI(dBm);MajorID;MinorID;'");               original
-						fout.write("\n% BLE 4.0 data:       \t'BLE4;AppTimestamp(s);Eddystone;MAC;RSSI(dBm);instanceID;OptionalTelemetry[voltaje;temperature;uptime;count]");
-						fout.write("\n% Sound data:         \t'SOUN;AppTimestamp(s);RMS;Pressure(Pa);SPL(dB);'");
-						fout.write("\n% RFID Reader data:   \t'RFID;AppTimestamp(s);ReaderNumber(int);TagID(int);RSS_A(dBm);RSS_B(dBm);'");
-						fout.write("\n% IMU XSens data:     \t'IMUX;AppTimestamp(s);SensorTimestamp(s);Counter;Acc_X(m/s^2);Acc_Y(m/s^2);Acc_Z(m/s^2);Gyr_X(rad/s);Gyr_Y(rad/s);Gyr_Z(rad/s);Mag_X(uT);;Mag_Y(uT);Mag_Z(uT);Roll(deg);Pitch(deg);Yaw(deg);Quat(1);Quat(2);Quat(3);Quat(4);Pressure(mbar);Temp(Celsius)'");
-						fout.write("\n% IMU LPMS-B data:    \t'IMUL;AppTimestamp(s);SensorTimestamp(s);Counter;Acc_X(m/s^2);Acc_Y(m/s^2);Acc_Z(m/s^2);Gyr_X(rad/s);Gyr_Y(rad/s);Gyr_Z(rad/s);Mag_X(uT);;Mag_Y(uT);Mag_Z(uT);Roll(deg);Pitch(deg);Yaw(deg);Quat(1);Quat(2);Quat(3);Quat(4);Pressure(mbar);Temp(Celsius)'");
-						fout.write("\n% IMU MIMU22BT data:  \t'IMUI;AppTimestamp(s);Packet_count;Step_Counter;delta_X(m);delta_Y(m);delta_Z(m);delta_theta(degrees);Covariance4x4[1:10]'");
-						fout.write("\n% POSI Reference:    	\t'POSI;Timestamp(s);Counter;Latitude(degrees); Longitude(degrees);floor ID(0,1,2..4);Building ID(0,1,2..3);'");
-						fout.write("\n% ");
-						fout.write("\n% Note that there are two timestamps: ");
-						fout.write("\n%  -'AppTimestamp' is set by the Android App as data is read. It is not representative of when data is actually captured by the sensor (but has a common time reference for all sensors)");
-						fout.write("\n%  -'SensorTimestamp' is set by the sensor itself (the delta_time=SensorTimestamp(k)-SensorTimestamp(k-1) between two consecutive samples is an accurate estimate of the sampling interval). This timestamp is better for integrating inertial data. \n");
-					} catch (Exception ex) {
-						Log.e("Ficheros", "Error al escribir fichero a memoria del dispositivo");
-					}
-					// Lanzar el Timer a 1Hz de Pintar los segundos trascurridos con timer
-					poner_manejador_Reloj();
-					timerReloj = new Timer("Hilo Timer Reloj");
-					timerReloj.schedule(TaskReloj, 1000, 1000);  // llamar a Timer cada 1 segundo (con retardo inicial de 1s)
-				} else  // Parar de grabar
+	private void poner_manejador_botonSaveTimeout() {
+		if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+			ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+			finish();
+		}
+		//...................................................................
+		// Manejador de ToggleButtonSave
+		obj_ToggleButtonSaveTimeout.setOnCheckedChangeListener(new ToggleButton.OnCheckedChangeListener() {
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				// Intentar almacenar o cerrar
+				if (isChecked)  // Comenzar a grabar
 				{
-					// Parar el Timer a 1Hz de Pintar los segundos trascurridos con timer
-					timerReloj.cancel();
-
-					Log.i("Oncheckedchanged","Botón Save pulsado para parar de grabar!. Cierro el fichero");
-					try {
-						primer_sensor_cambia=true;  // resetear marca tiempo
-						tiempo_inicial_ns_raw=0;
-						fout.close();
-						Toast.makeText(getApplicationContext(), "End of Saving", Toast.LENGTH_SHORT).show();
-
-					} catch (Exception ex) {
-						Log.e("Ficheros", "Error al intentar cerrar el fichero de memoria interna");
+					Log.i("OnCheckedchanged", "Botón Save pulsado!. Me pongo a grabar...");
+					obj_ToggleButtonSaveTimeout.setText("Getting ready!");
+					waitForLogging = true;
+					Handler handler = new Handler();
+					handler.postDelayed(new Runnable() {
+						public void run() {
+							if (!waitForLogging) {
+								return;
+							} else {
+								waitForLogging = false;
+							}
+							StorageStatus storageStatus = new StorageStatus();
+							storageStatus.updateStatus();
+							disable(obj_ToggleButtonSave);
+							startSavingLogfile(storageStatus);
+							countdownTimer = new SaveLogTimer(10000, 1000);
+							countdownTimer.start();
+						}
+					}, 5000);   //wait for 5 seconds
+				} else {
+					if (waitForLogging) {
+						waitForLogging = false;
+						return;
 					}
-
+					stopSavingLogfile();
+					countdownTimer.cancel();
+					enable(obj_ToggleButtonSave);
 				}
 			}
 		});
@@ -2740,7 +2836,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 		timerWifi.cancel();
 		if (timerReloj!=null)
 		{ timerReloj.cancel();}
-		
+
+		if (countdownTimer != null)
+			countdownTimer.cancel();
 		
 		//----------liberar microphono-----
 		if (mMicrophone!=null) {

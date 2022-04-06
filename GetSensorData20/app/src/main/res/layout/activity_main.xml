@@ -552,6 +552,14 @@
             android:layout_height="wrap_content"
             android:textAllCaps="false" />
 
+        <ToggleButton
+            android:id="@+id/togglebuttonsavetimeout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textOff="@string/texto_Save_Log_Timeout"
+            android:textOn="@string/texto_Saving_Timeout"
+            android:textAllCaps="false" />
     </LinearLayout>
 
 </LinearLayout>
