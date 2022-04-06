@@ -243,6 +243,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 	ToggleButton obj_ToggleButtonSave;
 	ToggleButton obj_ToggleButtonSaveTimeout;
 	OutputStreamWriter fout;
+	boolean savingLogfile = false;
 	boolean primer_sensor_cambia=true;
 	long tiempo_inicial_ns_raw=0;
 	long timestamp_ns;
@@ -910,7 +911,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 			public void onClick(View arg0) {
 
 				// Gestionar las pulsaciones del boton marcar
-				if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
+				if (savingLogfile)  // Si grabando datos en log
 				{
 					Log.i("OnBotonMarkPosition", "Posicion marcada con botón mientras grabo fichero");
 					contador_Posi=contador_Posi+1;  //incremento contador
@@ -926,7 +927,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 				}
 
 
-				if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
+				if (savingLogfile)  // Si grabando datos en log
 				{
 					// Poner TimeStamp de la App (seg�n le llega el dato)
 					long timestamp_ns_raw = System.nanoTime(); // in nano seconds
@@ -1145,6 +1146,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 				fout = new OutputStreamWriter(openFileOutput("logfile_" + str_fecha_actual + ".txt", Context.MODE_PRIVATE));
 				Log.i("OncheckedChanged", "Abierto fichero 'Interno' para escribir");
 			}
+			savingLogfile = true;
 
 			Toast.makeText(getApplicationContext(), "Saving sensor data", Toast.LENGTH_SHORT).show();
 
@@ -1202,6 +1204,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 		try {
 			primer_sensor_cambia = true;  // resetear marca tiempo
 			tiempo_inicial_ns_raw = 0;
+			savingLogfile = false;
 			fout.close();
 			Toast.makeText(getApplicationContext(), "End of Saving", Toast.LENGTH_SHORT).show();
 
@@ -1355,7 +1358,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 					double SensorTimeStamp = ((double)(tiempo_us))*1E-6;  // de micro_s a segundos
 					int RSS=result.level;
 					strWifi=strWifi+ "\n\t- " + SSID + ",\t" + BSSID + ",\tRSS:" +RSS+" dBm";
-					if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
+					if (savingLogfile)  // Si grabando datos en log
 					{
 						try {
 							String cadena_file=String.format(Locale.US,"\nWIFI;%.3f;%.3f;%s;%s;%d;%d",timestamp,SensorTimeStamp,SSID,BSSID,frequency ,RSS); // jtorres added frequency
@@ -1442,7 +1445,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 						String MAC_str=Mac_iBeacon.toStandardString();
 
 						strBLE=strBLE+ "\n\t-"+MAC_str+"\t\tRSS:"+Rssi+"dBm"+"\t\tID: " + Major + ":" + Minor;
-						if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
+						if (savingLogfile)  // Si grabando datos en log
 						{
 							// Poner TimeStamp de la App (seg�n le llega el dato)
 							long timestamp_ns_raw = System.nanoTime(); // in nano seconds
@@ -1517,7 +1520,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 						str_eddystones_BLE=str_eddystones_BLE + "\n\t-"+MAC_str+",\t\tRSS:" +Rssi+"dBm"+",\t\tID: " + instanceID +
 								         "\n  Vols:"+tel_voltaje+"\tTemp:"+tel_temperatura+"\tUpHours:"+tel_uptime+"\tCount:"+tel_contador;
 
-						if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
+						if (savingLogfile)  // Si grabando datos en log
 						{
 							// Poner TimeStamp de la App (seg�n le llega el dato)
 							long timestamp_ns_raw = System.nanoTime(); // in nano seconds
@@ -1643,7 +1646,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 				if (bluetoothdeviceList.contains((BluetoothDevice) remoteDevice) == false) {
 					bluetoothdeviceList.add(remoteDevice);  // Si no estaba ya => Lo voy metiendo en la lista
 				}
-				if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
+				if (savingLogfile)  // Si grabando datos en log
 				{
 					try {
 						String Address=remoteDevice.getAddress();
@@ -1723,7 +1726,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 					timestamp_Soun_last_update=timestamp;
 				}
 				// Grabar en fichero
-				if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
+				if (savingLogfile)  // Si grabando datos en log
 				{
 					try {
 						String cadena_file=String.format(Locale.US,"\nSOUN;%.3f;%.2f;%.5f;%.2f",timestamp,rms,pressure,SPL);
@@ -1819,7 +1822,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 						obj_txtView20c.setText(cadena_RFID);
 					}*/
 					// Grbar en fichero
-					if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
+					if (savingLogfile)  // Si grabando datos en log
 					{
 						try {
 							int readernumber=Integer.parseInt(readername.substring(readername.length()-2, readername.length()));
@@ -1924,7 +1927,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 					}
 
 					// Grbar en fichero
-					if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
+					if (savingLogfile)  // Si grabando datos en log
 					{
 						try {
 							String cadena_file=String.format(Locale.US,"\nIMUL;%.3f;%.4f;%d;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.3f;%.2f",
@@ -2014,7 +2017,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 					}
 
 					// Grabar en fichero
-					if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
+					if (savingLogfile)  // Si grabando datos en log
 					{
 						try {
 							String cadena_file=String.format(Locale.US,"\nIM1P;%.3f;%d;%d;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f",
@@ -2068,7 +2071,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     }
 
                     // Grabar en fichero
-                    if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
+                    if (savingLogfile)  // Si grabando datos en log
                     {
                         try {
                             String cadena_file=String.format(Locale.US,"\nIM1X;%.3f;%d;%d;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f",
@@ -2184,7 +2187,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 					}
 
 					// Grabar en fichero
-					if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
+					if (savingLogfile)  // Si grabando datos en log
 					{
 						try {
 							String cadena_file=String.format(Locale.US,"\nIMUX;%.3f;%.3f;%d;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.5f;%.3f;%.2f",
@@ -2331,7 +2334,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 			String statusForScreen = dataSensor.getStatus(StatusDestination.Screen, event);
 			if (!statusForScreen.equals("")) {
 				textView.setText(statusForScreen);
-				if (obj_ToggleButtonSave.isChecked()) {
+				if (savingLogfile) {
 					String statusForLog = dataSensor.getStatus(StatusDestination.Log, event);
 					try {
 						fout.write(statusForLog);
@@ -2419,7 +2422,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 			obj_txtView.setText(cadena_display);
 			timestamp_Gnss_last_update=timestamp;
 		}
-		if (obj_ToggleButtonSave.isChecked())  // Si grabando datos en log
+		if (savingLogfile)  // Si grabando datos en log
 		{
 			try {
 				String cadena_file=String.format(Locale.US,"\nGNSS;%.3f;%.3f;%.6f;%.6f;%.3f;%.3f;%.1f;%.1f;%d;%d",timestamp,SensorTimeStamp,latitude,longitude,altitude,bearing,accuracy,speed,num_satellites_in_view,num_satellites_in_use);
