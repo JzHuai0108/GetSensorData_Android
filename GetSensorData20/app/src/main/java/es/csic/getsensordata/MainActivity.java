@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 	private Timer timerBlue;          // Timer
 	private Timer timerReloj;          // Timer
 
-
+	private static SharedPreferences sharedPreferences;
 	public class SaveLogTimer extends CountDownTimer {
 		public SaveLogTimer(long startTime, long interval) {
 			super(startTime, interval);
@@ -517,12 +517,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 		timerWifi = new Timer("Hilo Timer WiFiScan");
 		timerWifi.scheduleAtFixedRate(scanTaskWifi, 2000, 2000);  // llamar a Timer cada 0.5 segundo (con retardo de 2s)
 
+		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+		sharedPreferences.edit().clear().commit();
 		//--------------------manejador BLE------------------------------------------
 		boolean hasBLE =getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE);
 		if (hasBLE) {
 			Log.i("OnCreate", "Tiene BLE");
-			SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-			flag_BLE = pref.getBoolean("opcion6", true);
+			flag_BLE = sharedPreferences.getBoolean("opcion6", true);
 			Log.i("OnCreate", "flag_BLE leido");
 		} else {
 			Log.i("OnCreate", "NO tiene BLE");
@@ -1257,7 +1258,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 				if (isChecked)  // Comenzar a grabar
 				{
 					Log.i("OnCheckedchanged", "Botón Save pulsado!. Me pongo a grabar...");
+					disable(obj_ToggleButtonSave);
 					obj_ToggleButtonSaveTimeout.setText("Getting ready!");
+					String delaystr = sharedPreferences.getString("optiondelay", "3");
+					float delaysec=Float.parseFloat(delaystr);
+					String durationstr = sharedPreferences.getString("optionduration","30");
+					float durationsec=Float.parseFloat(durationstr);
+					int delayms = (int)(delaysec * 1000);
+					final int durationms = (int)(durationsec * 1000);
 					waitForLogging = true;
 					Handler handler = new Handler();
 					handler.postDelayed(new Runnable() {
@@ -1269,15 +1277,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 							}
 							StorageStatus storageStatus = new StorageStatus();
 							storageStatus.updateStatus();
-							disable(obj_ToggleButtonSave);
+
 							startSavingLogfile(storageStatus);
-							countdownTimer = new SaveLogTimer(10000, 1000);
+							countdownTimer = new SaveLogTimer(durationms, 1000);
 							countdownTimer.start();
 						}
-					}, 5000);   //wait for 5 seconds
+					}, delayms);
 				} else {
 					if (waitForLogging) {
 						waitForLogging = false;
+						enable(obj_ToggleButtonSave);
 						return;
 					}
 					stopSavingLogfile();
@@ -2565,13 +2574,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 		}
 
-
-
-
 		Log.i("OnResume","Estoy en OnResume");
-
-		SharedPreferences pref =PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-		switch (Integer.parseInt(pref.getString("opcion1", "2")))
+		switch (Integer.parseInt(sharedPreferences.getString("opcion1", "2")))
 		{
 		case 1:
 			delay=SensorManager.SENSOR_DELAY_FASTEST;
@@ -2593,12 +2597,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 			delay=SensorManager.SENSOR_DELAY_GAME;
 		}
 		// Ver si quiero fijar la frecuencia a mi gusto en Hz
-		Boolean agusto=pref.getBoolean("opcion5", false);
+		Boolean agusto=sharedPreferences.getBoolean("opcion5", false);
 		if ( agusto )
 		{
 			try
 			{
-				double freq=Integer.parseInt(pref.getString("opcion2", "100"));
+				double freq=Integer.parseInt(sharedPreferences.getString("opcion2", "100"));
 				delay=(int) (1/freq*1000000);
 			} catch (Exception x)
 			{ Log.i("Preference","Update rate in Hz not parsed");}

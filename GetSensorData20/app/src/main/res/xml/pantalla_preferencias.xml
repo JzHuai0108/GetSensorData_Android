@@ -44,6 +44,23 @@
        
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="Logging with Timeout Preferences" >
+        <EditTextPreference
+            android:dialogTitle="Delay to Start Logging"
+            android:key="optiondelay"
+            android:summary="@string/texto_loggingdelay"
+            android:title="Logging Delay"
+            android:inputType="number" />
+
+        <EditTextPreference
+            android:dialogTitle="Logging Duration"
+            android:key="optionduration"
+            android:summary="@string/texto_loggingduration"
+            android:title="Logging Duration"
+            android:inputType="number" />
+
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="Bluetooth Preferences" >
         <CheckBoxPreference
             android:key="opcion6"
